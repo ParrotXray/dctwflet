@@ -282,15 +282,14 @@ def check_update():
             return False, "Workflow not found"
         workflow_url += "/runs?per_page=1"
         res = requests.get(workflow_url).json()
-        hash = res.get("workflow_runs")[0].get("head_sha")[0:7].strip().lower()
-        app_version = app_version.strip().lower()
-        if not hash == app_version:
+        online_hash = res.get("workflow_runs")[0].get("head_sha")[0:7].strip().lower()
+        if not online_hash == hash:
             if res.get("workflow_runs")[0].get("status") == "completed":
                 return (
-                    f"### New commit: {hash}\n\n"
-                    f"**Full Changelog**: [{app_version}...{hash}]"
+                    f"### New commit: {online_hash}\n\n"
+                    f"**Full Changelog**: [{hash}...{online_hash}]"
                     "(https://github.com/AvianJay/DCTWFlet/compare/"
-                    f"{app_version}...{hash})",
+                    f"{hash}...{online_hash})",
                     "https://nightly.link/AvianJay/DCTWFlet/"
                     f"workflows/build/main/DCTWFlet-{platform}.zip"
                 )
