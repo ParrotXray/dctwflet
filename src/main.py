@@ -267,7 +267,8 @@ def main(page: ft.Page):
                             weight=ft.FontWeight.BOLD,
                             text_align=ft.TextAlign.CENTER
                         )
-                    ]
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
                 )
             )
             server_view.controls.append(
@@ -282,6 +283,7 @@ def main(page: ft.Page):
                                     text_align=ft.TextAlign.CENTER
                                 ),
                             ],
+                            alignment=ft.MainAxisAlignment.CENTER,
                         ),
                         ft.Row(
                             [
