@@ -321,6 +321,7 @@ def main(page: ft.Page):
     def show_template_detail(template_id):
         template_view = ft.View(f"/template/{template_id}")
         template_view.scroll = ft.ScrollMode.AUTO
+        template_id = int(template_id)
         template = next((t for t in config.get_templates() if t["id"] == template_id), None)
         if template:
             template_view.appbar = ft.AppBar(
@@ -529,6 +530,7 @@ def main(page: ft.Page):
                 label="伺服器模板"
             ),
         ],
+        selected_index=config.config("home_index", 0),
         on_change=on_nav_change
     )
     home_show_page(config.config("home_index", 0))
