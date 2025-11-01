@@ -238,6 +238,18 @@ def get_templates(force=False):
     except requests.RequestException as e:
         print(f"Error fetching templates: {e}")
 
+def is_partner(id, type="bots"):
+    response = requests.post(
+        f"https://dctw.xyz/{type}/{id}",
+        headers={"User-Agent": f"DCTWFlet/{app_version}", "next-action": "7fa3998288bd6224af84ea89a09a241417ef8fc622"},
+        data=f'["{id}", "partner"]'
+    )
+    response.raise_for_status()
+    print("is_partner response:", response.text)
+    data = json.loads(response.text.split("1:")[1])
+    item = data.get("item", {})
+    return bool(item.get("partner", False))
+
 # image cache server
 # 暴力解 超讚
 image_ids = {}
