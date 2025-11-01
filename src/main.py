@@ -200,7 +200,164 @@ def main(page: ft.Page):
             )
             page.views.append(bot_view)
             page.update()
+        else:
+            page.open(
+                ft.SnackBar(
+                    content=ft.Text("找不到此機器人。"),
+                )
+            )
+            page.go("/")
     
+    def show_server_detail(server_id):
+        server_view = ft.View(f"/server/{server_id}")
+        server_view.scroll = ft.ScrollMode.AUTO
+        server = next((s for s in config.get_servers() if s["id"] == server_id), None)
+        if server:
+            server_view.appbar = ft.AppBar(
+                title=ft.Text(server["name"]),
+                bgcolor=ft.Colors.TRANSPARENT,
+                leading=ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK,
+                    on_click=lambda e: page.go("/"),
+                ),
+                automatically_imply_leading=False,
+            )
+            server_view.controls.append(
+                ft.Stack(
+                    [
+                        ft.Container(
+                            content=ft.Image(
+                                src=config.cache_image(server["banner"], size=1024),
+                                fit=ft.ImageFit.FIT_WIDTH,
+                            )
+                        ),
+                        ft.Container(
+                            content=ft.CircleAvatar(
+                                foreground_image_src=config.cache_image(server["avatar"], size=256),
+                                radius=64,
+                            ),
+                            alignment=ft.alignment.bottom_center,
+                            margin=ft.margin.only(top=128),
+                        ),
+                    ]
+                )
+            )
+            server_view.controls.append(
+                ft.Row(
+                    [
+                        ft.Text(
+                            server["name"],
+                            size=24,
+                            weight=ft.FontWeight.BOLD,
+                            text_align=ft.TextAlign.CENTER
+                        )
+                    ]
+                )
+            )
+            server_view.controls.append(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(
+                                    server["description"],
+                                    size=16,
+                                    weight=ft.FontWeight.NORMAL,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                            ],
+                        ),
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(
+                                    icon=ft.Icons.ADD,
+                                    text="加入伺服器",
+                                    on_click=lambda e: page.launch_url(server["inviteLink"]),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        ft.Markdown(
+                            server["introduce"],
+                            fit_content=False,
+                            on_tap_link=lambda e: page.launch_url(e.data),
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
+                    scroll=ft.ScrollMode.AUTO,
+                )
+            )
+            server_view.controls.append(
+                ft.Text("伺服器詳情頁面正在開發中...")
+            )
+            page.views.append(server_view)
+            page.update()
+        else:
+            page.open(
+                ft.SnackBar(
+                    content=ft.Text("找不到此伺服器。"),
+                )
+            )
+            page.go("/")
+    
+    def show_template_detail(template_id):
+        template_view = ft.View(f"/template/{template_id}")
+        template_view.scroll = ft.ScrollMode.AUTO
+        template = next((t for t in config.get_templates() if t["id"] == template_id), None)
+        if template:
+            template_view.appbar = ft.AppBar(
+                title=ft.Text(template["name"]),
+                bgcolor=ft.Colors.TRANSPARENT,
+                leading=ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK,
+                    on_click=lambda e: page.go("/"),
+                ),
+                automatically_imply_leading=False,
+            )
+            template_view.controls.append(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(
+                                    template["name"],
+                                    size=24,
+                                    weight=ft.FontWeight.BOLD,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        ft.Row(
+                            [
+                                ft.Text(
+                                    template["description"],
+                                    size=16,
+                                    weight=ft.FontWeight.NORMAL,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        ft.Markdown(
+                            template["introduce"],
+                            on_tap_link=lambda e: page.launch_url(e.data),
+                        )
+                    ]
+                )
+            )
+            template_view.controls.append(
+                ft.Text("伺服器模板詳情頁面正在開發中...")
+            )
+            page.views.append(template_view)
+            page.update()
+        else:
+            page.open(
+                ft.SnackBar(
+                    content=ft.Text("找不到此伺服器模板。"),
+                )
+            )
+            page.go("/")
     
     def upload_log(e):
         if config.update_channel == "developer":
@@ -239,30 +396,10 @@ def main(page: ft.Page):
             show_bot_detail(bot_id)
         elif page.route.startswith("/server/"):
             server_id = page.route.split("/server/")[1]
-            page.views.append(
-                ft.View(
-                    f"/server/{server_id}",
-                    [
-                        ft.AppBar(
-                            title=ft.Text("伺服器詳情"),
-                        ),
-                        ft.Text(f"WIP {server_id}")
-                    ]
-                )
-            )
+            show_server_detail(server_id)
         elif page.route.startswith("/template/"):
             template_id = page.route.split("/template/")[1]
-            page.views.append(
-                ft.View(
-                    f"/template/{template_id}",
-                    [
-                        ft.AppBar(
-                            title=ft.Text("伺服器模板詳情"),
-                        ),
-                        ft.Text(f"WIP {template_id}")
-                    ]
-                )
-            )
+            show_template_detail(template_id)
         elif page.route.startswith("/settings"):
             page.views.append(
                 ft.View(
