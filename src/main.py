@@ -5,6 +5,13 @@ import threading
 
 def main(page: ft.Page):
     page.title = "DCTW"
+    
+    # theme
+    def update_theme(theme=config.config("theme")):
+        config.config("theme", ft.ThemeMode(theme).value, "w")
+        page.theme_mode = ft.ThemeMode(config.config("theme"))
+        page.update()
+    update_theme()
 
     bots_column = ft.Container(
         content=ft.Column(
@@ -193,19 +200,116 @@ def main(page: ft.Page):
             )
             page.views.append(bot_view)
             page.update()
+    
+    
+    def upload_log(e):
+        if config.update_channel == "developer":
+            page.open(
+                ft.SnackBar(
+                    content=ft.Text("developer模式無法上傳。"),
+                )
+            )
+            return
+        try:
+            url = config.upload_log()
+        except Exception as e:
+            page.open(
+                ft.SnackBar(
+                    content=ft.Text(f"上傳錯誤: {str(e)}"),
+                )
+            )
+        page.set_clipboard(url)
+        page.open(
+            ft.SnackBar(
+                content=ft.Text("連結已複製到剪貼簿。"),
+                action="開啟網頁",
+                on_action=lambda e: page.launch_url(url),
+            )
+        )
         
 
     def route_change(route):
         page.views.clear()
-        if page.route == "/":
-            page.views.append(home_view)
-        elif page.route == "/about":
+        # if page.route == "/":
+        page.views.append(home_view)
+        if page.route == "/about":
             page.views.append(ft.View("/about", [ft.Text("About Page")]))
         elif page.route.startswith("/bot/"):
             bot_id = page.route.split("/bot/")[1]
             show_bot_detail(bot_id)
-        else:
-            page.views.append(ft.View("/notfound", [ft.Text("404 - Page Not Found")]))
+        elif page.route.startswith("/server/"):
+            server_id = page.route.split("/server/")[1]
+            page.views.append(
+                ft.View(
+                    f"/server/{server_id}",
+                    [
+                        ft.AppBar(
+                            title=ft.Text("伺服器詳情"),
+                        ),
+                        ft.Text(f"WIP {server_id}")
+                    ]
+                )
+            )
+        elif page.route.startswith("/template/"):
+            template_id = page.route.split("/template/")[1]
+            page.views.append(
+                ft.View(
+                    f"/template/{template_id}",
+                    [
+                        ft.AppBar(
+                            title=ft.Text("伺服器模板詳情"),
+                        ),
+                        ft.Text(f"WIP {template_id}")
+                    ]
+                )
+            )
+        elif page.route.startswith("/settings"):
+            page.views.append(
+                ft.View(
+                    "/settings",
+                    [
+                        ft.AppBar(
+                            title=ft.Text("設定"),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                        ),
+                        ft.Column(
+                            [
+                                ft.Dropdown(
+                                    label="主題",
+                                    options=[
+                                        ft.dropdown.Option("system", "系統預設"),
+                                        ft.dropdown.Option("light", "淺色主題"),
+                                        ft.dropdown.Option("dark", "深色主題"),
+                                    ],
+                                    value=config.config("theme"),
+                                    on_change=lambda e: update_theme(e.control.value),
+                                ),
+                                ft.Dropdown(
+                                    label="應用程式更新通知",
+                                    options=[
+                                        ft.dropdown.Option("popup", "彈出視窗"),
+                                        ft.dropdown.Option("notify", "通知訊息"),
+                                        ft.dropdown.Option("none", "不通知"),
+                                    ],
+                                    value=config.config("app_update_check"),
+                                    on_change=lambda e: config.config("app_update_check", e.control.value, "w"),
+                                ),
+                                # version info
+                                ft.Text(f"應用程式版本: {config.full_version}"),
+                                ft.ElevatedButton(
+                                    text="上傳應用程式日誌",
+                                    icon=ft.Icons.BUG_REPORT,
+                                    on_click=upload_log,
+                                ),
+                            ],
+                            scroll=ft.ScrollMode.AUTO,
+                            alignment=ft.MainAxisAlignment.START,
+                        ),
+                    ]
+                )
+            )
+        # else:
+        #     page.views.append(ft.View("/notfound", [ft.Text("404 - Page Not Found")]))
         page.update()
     
     def view_pop(e):
@@ -223,9 +327,15 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
         actions=[
             ft.IconButton(
+                icon=ft.Icons.SETTINGS,
+                on_click=lambda e: page.go("/settings"),
+                tooltip="設定",
+            ),
+            ft.IconButton(
                 icon=ft.Icons.REFRESH,
                 on_click=force_update,
-            )
+                tooltip="重新整理",
+            ),
         ]
     )
     
@@ -267,6 +377,56 @@ def main(page: ft.Page):
     )
     home_show_page(0)
     page.go("/")
+    
+    def open_app_update_dialog(updates, data):
+        def app_update(e):
+            page.open(ft.SnackBar(
+                content=ft.Text("正在更新"),
+            ))
+            page.launch_url(data)
+        upddlg = ft.AlertDialog(
+            title=ft.Text("應用程式有新更新"),
+            content=ft.Markdown(updates, on_tap_link=lambda e: page.launch_url(e.data)),
+            actions=[
+                ft.TextButton("下次再說", on_click=lambda e: page.close(upddlg)),
+                ft.TextButton("更新", on_click=app_update),
+            ],
+        )
+        page.open(upddlg)
+    
+    try:
+        updates, data = config.check_update()
+        if updates:
+            home_view.appbar.actions.append(
+                ft.IconButton(
+                    ft.Icons.UPDATE,
+                    on_click=lambda e: open_app_update_dialog(updates, data),
+                    tooltip="應用程式有新版本",
+                )
+            )
+            page.update()
+            if config.config("app_update_check") == "popup":
+                open_app_update_dialog(updates, data)
+            elif config.config("app_update_check") == "notify":
+                ft.SnackBar(
+                    content=ft.Text("應用程式有新版本"),
+                    action="查看",
+                    on_action=lambda e: open_app_update_dialog(updates, data),
+                )
+        else:
+            if data:
+                page.open(ft.SnackBar(
+                    content=ft.Text("錯誤: " + data),
+                    action="確定",
+                ))
+    except Exception as e:
+        print("Failed to check app update:", str(e))
+        page.open(ft.SnackBar(
+            content=ft.Text("檢查程式更新時發生錯誤。"),
+            action="確定",
+        ))
+    home_view.appbar.actions.reverse()
+    page.update()
 
 
 ft.app(main)

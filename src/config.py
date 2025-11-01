@@ -8,8 +8,6 @@ import shutil
 import threading
 import mimetypes
 from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
-from pathlib import Path
-import base64
 from flask import Flask, send_file
 import random
 import string
@@ -17,8 +15,16 @@ import string
 app = Flask(__name__)
 port = random.randint(10000, 60000)
 
-app_version = 1
-config_version = 1
+app_version = "0.1.0"
+config_version = 2
+update_channel = "developer"
+hash = "unknown"
+if hash == "unknown":
+    try:
+        hash = os.popen("git rev-parse --short HEAD").read().strip()
+    except Exception as e:
+        print("Failed to get git hash:", str(e))
+full_version = f"{app_version}-{update_channel}({hash})"
 
 platform = os.getenv("FLET_PLATFORM")
 datadir = os.getenv("FLET_APP_STORAGE_DATA", ".")
@@ -30,6 +36,8 @@ print("Data directory:", rel_datadir)
 
 default_config = {
     "config_version": config_version,
+    "theme": "system",
+    "app_update_check": "popup",
 }
 
 config_path = os.path.join(datadir, "config.json")
@@ -206,6 +214,8 @@ def get_servers(force=False):
         response = requests.get("https://dctw.xyz/api/v1/servers")
         response.raise_for_status()
         servers = response.json()
+        # sort by bump_at (datetime TZ)
+        servers.sort(key=lambda x: datetime.fromisoformat(x.get("bump_at", "")).astimezone(), reverse=True)
         cache("servers", servers, mode="w", expire=600)
         return servers
     except requests.RequestException as e:
@@ -221,6 +231,8 @@ def get_templates(force=False):
         response = requests.get("https://dctw.xyz/api/v1/templates")
         response.raise_for_status()
         templates = response.json()
+        # sort by bump_at (datetime TZ)
+        templates.sort(key=lambda x: datetime.fromisoformat(x.get("bump_at", "")).astimezone(), reverse=True)
         cache("templates", templates, mode="w", expire=600)
         return templates
     except requests.RequestException as e:
@@ -242,3 +254,75 @@ def run_image_cache_server():
     app.run(host="127.0.0.1", port=port)
 
 threading.Thread(target=run_image_cache_server, daemon=True).start()
+
+# check updates
+def check_update():
+    global app_version
+    if update_channel == "nightly":
+        workflows_url = "https://api.github.com/repos/" \
+            "AvianJay/DCTWFlet/actions/workflows"
+        res = requests.get(workflows_url).json()
+        workflow_url = next(
+            (s["url"] for s in res.get("workflows") if s["name"] == "Build"),
+            None
+        )
+        if not workflow_url:
+            return False, "Workflow not found"
+        workflow_url += "/runs?per_page=1"
+        res = requests.get(workflow_url).json()
+        hash = res.get("workflow_runs")[0].get("head_sha")[0:7].strip().lower()
+        app_version = app_version.strip().lower()
+        if not hash == app_version:
+            if res.get("workflow_runs")[0].get("status") == "completed":
+                return (
+                    f"### New commit: {hash}\n\n"
+                    f"**Full Changelog**: [{app_version}...{hash}]"
+                    "(https://github.com/AvianJay/DCTWFlet/compare/"
+                    f"{app_version}...{hash})",
+                    "https://nightly.link/AvianJay/DCTWFlet/"
+                    f"workflows/build/main/DCTWFlet-{platform}.zip"
+                )
+        return False, None
+    elif update_channel == "developer":
+        return False, None  # No updates for developer channel
+    elif update_channel == "release":
+        headers = {
+            "User-Agent": "DCTWFlet/" + app_version
+        }
+        r = requests.get(
+            "https://api.github.com/repos/AvianJay/DCTWFlet/releases",
+            headers=headers,
+            timeout=5
+        )
+        r.raise_for_status()
+        releases = r.json()
+        if releases:
+            latest_version = releases[0]["tag_name"]
+            # get file
+            for asset in releases[0]["assets"]:
+                if platform in asset["name"]:
+                    file_url = asset["browser_download_url"]
+            if latest_version != app_version:
+                return releases[0]["body"] + \
+                    f"\n[original]({releases[0]['html_url']})", file_url
+    return False, None
+
+def upload_log() -> str:
+    log_path = os.environ.get("FLET_APP_CONSOLE")
+    if not log_path or not os.path.isfile(log_path):
+        raise FileNotFoundError(f"找不到檔案: {log_path}")
+
+    with open(log_path, "rb") as f:
+        files = {"file": f}
+        r = requests.post(
+            "https://0x0.st",
+            files=files,
+            headers={
+                "User-Agent": f"TaiwanBusFlet/{app_version}"
+            }
+        )
+
+    if r.status_code == 200:
+        return r.text.strip()  # 回傳短網址
+    else:
+        raise Exception(f"{r.status_code} {r.text}")
