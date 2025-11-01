@@ -245,7 +245,9 @@ def main(page: ft.Page):
                             content=ft.Image(
                                 src=config.cache_image(server["banner"], size=1024),
                                 fit=ft.ImageFit.FIT_WIDTH,
-                            )
+                            ),
+                            width=page.width,
+                            height=256,
                         ),
                         ft.Container(
                             content=ft.CircleAvatar(
@@ -354,6 +356,16 @@ def main(page: ft.Page):
                                     size=16,
                                     weight=ft.FontWeight.NORMAL,
                                     text_align=ft.TextAlign.CENTER
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(
+                                    icon=ft.Icons.ADD,
+                                    text="使用模板",
+                                    on_click=lambda e: page.launch_url(template["shareLink"]),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
