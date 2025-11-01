@@ -496,6 +496,7 @@ def main(page: ft.Page):
     
     def home_show_page(index):
         home_view.controls.clear()
+        config.config("home_index", index, "w")
         if index == 0:
             home_view.controls.append(bots_column)
             threading.Thread(target=update_bots, args=(None, False)).start()
@@ -530,7 +531,7 @@ def main(page: ft.Page):
         ],
         on_change=on_nav_change
     )
-    home_show_page(0)
+    home_show_page(config.config("home_index", 0))
     page.go("/")
     
     def open_app_update_dialog(updates, data):

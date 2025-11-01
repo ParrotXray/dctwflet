@@ -16,7 +16,7 @@ app = Flask(__name__)
 port = random.randint(10000, 60000)
 
 app_version = "0.1.0"
-config_version = 2
+config_version = 3
 update_channel = "developer"
 hash = "unknown"
 if hash == "unknown":
@@ -38,6 +38,7 @@ default_config = {
     "config_version": config_version,
     "theme": "system",
     "app_update_check": "popup",
+    "home_index": 0,
 }
 
 config_path = os.path.join(datadir, "config.json")
