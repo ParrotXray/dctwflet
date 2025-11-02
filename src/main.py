@@ -121,7 +121,7 @@ def main(page: ft.Page):
                     [
                         ft.Container(
                             content=ft.Image(
-                                src=config.cache_image(bot["banner"], size=1024),
+                                src=config.cache_image(bot["banner_url"], size=1024),
                                 fit=ft.ImageFit.FIT_WIDTH,
                             ),
                             height=256,
@@ -161,7 +161,6 @@ def main(page: ft.Page):
                     alignment=ft.MainAxisAlignment.CENTER,
                 )
             )
-            tags = bot.get("tags", "").split(",")
             bot_view.controls.append(
                 ft.Column(
                     [
