@@ -384,6 +384,7 @@ server_tags = {
     "art": ("藝術", ft.Icons.BRUSH),
     "hangout": ("閒聊", ft.Icons.FORUM),
     "programming": ("程式設計", ft.Icons.CODE),
+    "programing": ("程式設計", ft.Icons.CODE),  # bro wtf
     "acting": ("表演", ft.Icons.MIC),
     "nsfw": ("NSFW", ft.Icons.DO_NOT_DISTURB),
     "roleplay": ("角色扮演", ft.Icons.PEOPLE),
