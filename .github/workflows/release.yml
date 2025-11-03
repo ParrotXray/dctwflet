@@ -380,6 +380,7 @@ jobs:
         run: |
           mv release_files/**/*.apk release_files/DCTWFlet-android.apk
           mv release_files/**/*.ipa release_files/DCTWFlet-ios.ipa
+          mv release_files/**/*.aab release_files/DCTWFlet-android.aab
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
@@ -392,5 +393,6 @@ jobs:
             release_files/*.apk
             release_files/*.ipa
             release_files/*.zip
+            release_files/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
