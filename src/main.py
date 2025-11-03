@@ -523,14 +523,14 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
         actions=[
             ft.IconButton(
-                icon=ft.Icons.SETTINGS,
-                on_click=lambda e: page.go("/settings"),
-                tooltip="設定",
-            ),
-            ft.IconButton(
                 icon=ft.Icons.REFRESH,
                 on_click=force_update,
                 tooltip="重新整理",
+            ),
+            ft.IconButton(
+                icon=ft.Icons.SETTINGS,
+                on_click=lambda e: page.go("/settings"),
+                tooltip="設定",
             ),
         ]
     )
@@ -601,7 +601,8 @@ def main(page: ft.Page):
     try:
         updates, data = config.check_update()
         if updates:
-            home_view.appbar.actions.append(
+            home_view.appbar.actions.insert(
+                0,
                 ft.IconButton(
                     ft.Icons.UPDATE,
                     on_click=lambda e: open_app_update_dialog(updates, data),
@@ -612,10 +613,12 @@ def main(page: ft.Page):
             if config.config("app_update_check") == "popup":
                 open_app_update_dialog(updates, data)
             elif config.config("app_update_check") == "notify":
-                ft.SnackBar(
-                    content=ft.Text("應用程式有新版本"),
-                    action="查看",
-                    on_action=lambda e: open_app_update_dialog(updates, data),
+                page.open(
+                    ft.SnackBar(
+                        content=ft.Text("應用程式有新版本"),
+                        action="查看",
+                        on_action=lambda e: open_app_update_dialog(updates, data),
+                    )
                 )
         else:
             if data:
@@ -629,7 +632,7 @@ def main(page: ft.Page):
             content=ft.Text("檢查程式更新時發生錯誤。"),
             action="確定",
         ))
-    home_view.appbar.actions.reverse()
+    # home_view.appbar.actions.reverse()
     page.update()
 
 
