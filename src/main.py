@@ -409,6 +409,22 @@ def main(page: ft.Page):
             )
         )
         
+    
+    def clear_cache(e):
+        config.clear_cache()
+        page.open(
+            ft.SnackBar(
+                content=ft.Text("快取已清除。"),
+            )
+        )
+    def clear_image_cache(e):
+        config.clear_image_cache()
+        page.open(
+            ft.SnackBar(
+                content=ft.Text("圖片快取已清除。"),
+            )
+        )
+        
 
     def route_change(route):
         page.views.clear()
@@ -465,6 +481,17 @@ def main(page: ft.Page):
                                 ),
                                 # version info
                                 ft.Text(f"應用程式版本: {config.full_version}"),
+                                # clear cache button
+                                ft.ElevatedButton(
+                                    text="清除快取",
+                                    icon=ft.Icons.DELETE,
+                                    on_click=clear_cache,
+                                ),
+                                ft.ElevatedButton(
+                                    text="清除圖片快取",
+                                    icon=ft.Icons.DELETE,
+                                    on_click=clear_image_cache,
+                                ),
                                 ft.ElevatedButton(
                                     text="上傳應用程式日誌",
                                     icon=ft.Icons.BUG_REPORT,
