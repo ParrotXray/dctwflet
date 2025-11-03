@@ -11,6 +11,7 @@ from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 from flask import Flask, send_file
 import random
 import string
+import traceback
 
 app = Flask(__name__)
 port = random.randint(10000, 60000)
@@ -112,8 +113,10 @@ def cache(key, value=None, mode="r", expire=None):
     except Exception as e:
         cache_limiter.release()
         print(f"Cache error: {e}")
+        traceback.print_exc()
 
 BASE_URL = "https://dctw.xyz"
+DEFAULT_IMAGE = BASE_URL + "/icon.png"
 
 def _cache_image(url):
     original_url = url
@@ -141,7 +144,12 @@ def _cache_image(url):
         return image_path
     except requests.RequestException as e:
         print(f"Error caching image from {url}: {e}")
-        return None
+        print("Try to use default image.")
+        try:
+            if url != DEFAULT_IMAGE:
+                return _cache_image(DEFAULT_IMAGE)
+        except Exception as e:
+            print(f"Error caching default image: {e}")
 
 def cache_image(url, callback=None, size=None):
     images_dir = os.path.join(datadir, "images")
@@ -355,3 +363,43 @@ def upload_log() -> str:
         return r.text.strip()  # 回傳短網址
     else:
         raise Exception(f"{r.status_code} {r.text}")
+
+bot_tags = {
+    "music": ("音樂", ft.Icons.MUSIC_NOTE),
+    "minigames": ("小遊戲", ft.Icons.GAMES),
+    "fun": ("有趣", ft.Icons.EMOJI_EMOTIONS),
+    "utility": ("工具", ft.Icons.BUILD),
+    "management": ("管理", ft.Icons.SETTINGS),
+    "customizable": ("可自訂", ft.Icons.PALETTE),
+    "automation": ("自動化", ft.Icons.AUTO_FIX_HIGH),
+    "roleplay": ("角色扮演", ft.Icons.PEOPLE),
+    "nsfw": ("NSFW", ft.Icons.DO_NOT_DISTURB)
+}
+
+# gaming,community,anime,art,hangout,programming,acting,nsfw,roleplay,politics
+server_tags = {
+    "gaming": ("遊戲", ft.Icons.VIDEOGAME_ASSET),
+    "community": ("社群", ft.Icons.GROUP),
+    "anime": ("動漫", ft.Icons.FLASH_ON),
+    "art": ("藝術", ft.Icons.BRUSH),
+    "hangout": ("閒聊", ft.Icons.FORUM),
+    "programming": ("程式設計", ft.Icons.CODE),
+    "acting": ("表演", ft.Icons.MIC),
+    "nsfw": ("NSFW", ft.Icons.DO_NOT_DISTURB),
+    "roleplay": ("角色扮演", ft.Icons.PEOPLE),
+    "politics": ("政治", ft.Icons.GAVEL)
+}
+
+status_colors = {
+    "online": ft.Colors.GREEN,
+    "idle": ft.Colors.YELLOW,
+    "dnd": ft.Colors.RED,
+    "offline": ft.Colors.GREY,
+}
+
+status_texts = {
+    "online": "線上",
+    "idle": "閒置",
+    "dnd": "請勿打擾",
+    "offline": "離線",
+}

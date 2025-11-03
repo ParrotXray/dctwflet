@@ -60,13 +60,13 @@ def main(page: ft.Page):
                 ft.ListTile(
                     leading=ft.CircleAvatar(foreground_image_src=config.cache_image(bot["avatar_url"], size=128)),
                     title=ft.Text(bot["name"]),
-                    subtitle=ft.Text(bot["description"]),
+                    subtitle=ft.Text(bot.get("description", "")),
                     key=str(bot["id"]),
                     on_click=lambda e: page.go(f"/bot/{e.control.key}"),
                 )
             )
         page.update()
-    
+
     def update_servers(e, force=False):
         servers = config.get_servers(force=force)
         servers_column.content.controls.clear()
@@ -75,7 +75,7 @@ def main(page: ft.Page):
                 ft.ListTile(
                     leading=ft.CircleAvatar(foreground_image_src=config.cache_image(server["icon_url"], size=128)),
                     title=ft.Text(server["name"]),
-                    subtitle=ft.Text(server["description"]),
+                    subtitle=ft.Text(server.get("description", "")),
                     key=str(server["id"]),
                     on_click=lambda e: page.go(f"/server/{e.control.key}"),
                 )
@@ -103,7 +103,7 @@ def main(page: ft.Page):
             type_map[index](e, force=True)
     
     def show_bot_detail(bot_id):
-        bot_view = ft.View(f"/bot/{bot_id}")
+        bot_view = ft.View(f"/bot/{bot_id}", vertical_alignment=ft.MainAxisAlignment.START)
         bot_view.scroll = ft.ScrollMode.AUTO
         bot = next((b for b in config.get_bots() if b["id"] == bot_id), None)
         if bot:
@@ -128,9 +128,25 @@ def main(page: ft.Page):
                             width=page.width,
                         ),
                         ft.Container(
-                            content=ft.CircleAvatar(
-                                foreground_image_src=config.cache_image(bot["avatar_url"], size=256),
-                                radius=64,
+                            content=ft.Stack(
+                                [
+                                    ft.CircleAvatar(
+                                        foreground_image_src=config.cache_image(bot["avatar_url"], size=256),
+                                        radius=64,
+                                    ),
+                                    ft.Container(
+                                        content=ft.Container(
+                                            content=ft.CircleAvatar(
+                                                bgcolor=config.status_colors.get(bot.get("status", "offline"), ft.Colors.GREY),
+                                                radius=16,
+                                            ),
+                                            on_click=lambda e: page.open(ft.SnackBar(content=ft.Text(f"機器人狀態: {config.status_texts.get(bot.get('status', 'offline'), '未知')}"))),
+                                        ),
+                                        alignment=ft.alignment.bottom_right,
+                                    )
+                                ],
+                                width=128,
+                                height=128,
                             ),
                             alignment=ft.alignment.bottom_center,
                             margin=ft.margin.only(top=128),
@@ -152,10 +168,10 @@ def main(page: ft.Page):
                             text_align=ft.TextAlign.CENTER
                         ),
                         *(
-                            [ft.ElevatedButton(text="Discord官方驗證", icon=ft.Icons.VERIFIED, bgcolor=ft.Colors.BLUE)] if verified else []
+                            [ft.IconButton(icon=ft.Icons.VERIFIED, bgcolor=ft.Colors.BLUE, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人經過 Discord 官方驗證。"))))] if verified else []
                         ),
                         *(
-                            [ft.ElevatedButton(text="DCTW合作夥伴", icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN)] if is_partner else []
+                            [ft.IconButton(icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人為 DCTW 合作夥伴。"))))] if is_partner else []
                         )
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
@@ -175,6 +191,13 @@ def main(page: ft.Page):
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
+                        # tags
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(text=config.bot_tags[tag][0], icon=config.bot_tags[tag][1]) for tag in bot.get("tags", [])
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
                         # inviteLink button
                         ft.Row(
                             [
@@ -183,15 +206,19 @@ def main(page: ft.Page):
                                     text="邀請機器人",
                                     on_click=lambda e: page.launch_url(bot["invite_url"]),
                                 ),
-                                ft.ElevatedButton(
-                                    icon=ft.Icons.HELP_CENTER,
-                                    text="支援伺服器",
-                                    on_click=lambda e: page.launch_url(bot["server_url"]),
+                                *(
+                                    [ft.ElevatedButton(
+                                        icon=ft.Icons.HELP_CENTER,
+                                        text="支援伺服器",
+                                        on_click=lambda e: page.launch_url(bot["server_url"]),
+                                    )] if bot.get("server_url") else []
                                 ),
-                                ft.ElevatedButton(
-                                    icon=ft.Icons.LINK,
-                                    text="官方網站",
-                                    on_click=lambda e: page.launch_url(bot["web_url"]),
+                                *(
+                                    [ft.ElevatedButton(
+                                        icon=ft.Icons.LINK,
+                                        text="官方網站",
+                                        on_click=lambda e: page.launch_url(bot["web_url"]),
+                                    )] if bot.get("web_url") else []
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
@@ -219,7 +246,7 @@ def main(page: ft.Page):
             page.go("/")
     
     def show_server_detail(server_id):
-        server_view = ft.View(f"/server/{server_id}")
+        server_view = ft.View(f"/server/{server_id}", vertical_alignment=ft.MainAxisAlignment.START)
         server_view.scroll = ft.ScrollMode.AUTO
         server = next((s for s in config.get_servers() if s["id"] == server_id), None)
         if server:
@@ -251,9 +278,12 @@ def main(page: ft.Page):
                             alignment=ft.alignment.bottom_center,
                             margin=ft.margin.only(top=128),
                         ),
-                    ]
+                    ],
+                    width=page.width,
+                    height=256 + 64,
                 )
             )
+            is_partner = server.get("is_partnered", False)
             server_view.controls.append(
                 ft.Row(
                     [
@@ -262,7 +292,10 @@ def main(page: ft.Page):
                             size=24,
                             weight=ft.FontWeight.BOLD,
                             text_align=ft.TextAlign.CENTER
-                        )
+                        ),
+                        *(
+                            [ft.IconButton(icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此伺服器為 DCTW 合作夥伴。"))))] if is_partner else []
+                        ),
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
                 )
@@ -278,6 +311,13 @@ def main(page: ft.Page):
                                     weight=ft.FontWeight.NORMAL,
                                     text_align=ft.TextAlign.CENTER
                                 ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        # tags
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(text=config.server_tags[tag][0], icon=config.server_tags[tag][1]) for tag in server.get("tags", [])
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
@@ -315,7 +355,7 @@ def main(page: ft.Page):
             page.go("/")
     
     def show_template_detail(template_id):
-        template_view = ft.View(f"/template/{template_id}")
+        template_view = ft.View(f"/template/{template_id}", vertical_alignment=ft.MainAxisAlignment.START)
         template_view.scroll = ft.ScrollMode.AUTO
         template_id = int(template_id)
         template = next((t for t in config.get_templates() if t["id"] == template_id), None)
