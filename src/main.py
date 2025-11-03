@@ -483,7 +483,7 @@ def main(page: ft.Page):
                                 ft.Text(f"應用程式版本: {config.full_version}"),
                                 # clear cache button
                                 ft.ElevatedButton(
-                                    text="清除快取",
+                                    text="清除所有快取",
                                     icon=ft.Icons.DELETE,
                                     on_click=clear_cache,
                                 ),
