@@ -121,10 +121,11 @@ def main(page: ft.Page):
             bot_view.floating_action_button = ft.FloatingActionButton(
                 icon=ft.Icons.ARROW_BACK,
                 on_click=lambda e: page.go("/"),
-                bgcolor=ft.Colors.TRANSPARENT,
+                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
                 shape=ft.CircleBorder(),
                 tooltip="返回",
                 offset=ft.Offset(-0.3, 0),
+                scale=ft.Scale(0.9)
             )
             bot_view.floating_action_button_location = ft.FloatingActionButtonLocation.START_TOP
             bot_view.controls.append(
@@ -133,9 +134,10 @@ def main(page: ft.Page):
                         ft.Container(
                             content=ft.Image(
                                 src=config.cache_image(bot["banner_url"], size=1024),
-                                fit=ft.ImageFit.FIT_WIDTH,
+                                fit=ft.ImageFit.COVER,
                             ),
                             height=256,
+                            
                             width=page.width,
                         ),
                         ft.Container(
@@ -178,12 +180,6 @@ def main(page: ft.Page):
                             weight=ft.FontWeight.BOLD,
                             text_align=ft.TextAlign.CENTER
                         ),
-                        *(
-                            [ft.IconButton(icon=ft.Icons.VERIFIED, bgcolor=ft.Colors.BLUE, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人經過 Discord 官方驗證。"))))] if verified else []
-                        ),
-                        *(
-                            [ft.IconButton(icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人為 DCTW 合作夥伴。"))))] if is_partner else []
-                        )
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER
@@ -194,47 +190,65 @@ def main(page: ft.Page):
                     [
                         ft.Row(
                             [
-                                ft.Text(
-                                    bot["description"],
-                                    size=16,
-                                    weight=ft.FontWeight.NORMAL,
-                                    text_align=ft.TextAlign.CENTER
+                                *(
+                                    [ft.ElevatedButton(text="Discord 已驗證",icon=ft.Icons.VERIFIED, bgcolor=ft.Colors.BLUE, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人經過 Discord 官方驗證。"))))] if verified else []
                                 ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
-                        # tags
-                        ft.Row(
-                            [
-                                ft.ElevatedButton(text=config.bot_tags[tag][0], icon=config.bot_tags[tag][1]) for tag in bot.get("tags", [])
+                                *(
+                                    [ft.ElevatedButton(text="DCTW 合作夥伴",icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此機器人為 DCTW 合作夥伴。"))))] if is_partner else []
+                                )
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER
                         ),
+                        ft.Container(
+                            content=ft.Text(
+                                bot["description"],
+                                size=16,
+                                weight=ft.FontWeight.NORMAL,
+                                text_align=ft.TextAlign.CENTER,
+                                no_wrap=False,
+                            ),
+                            alignment=ft.alignment.center,
+                        ),
+                        # tags
+                        ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.ElevatedButton(text=config.bot_tags[tag][0], icon=config.bot_tags[tag][1]) for tag in bot.get("tags", [])
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                wrap=True
+                            ),
+                            alignment=ft.alignment.center,
+                        ),
                         # inviteLink button
-                        ft.Row(
-                            [
-                                ft.ElevatedButton(
-                                    icon=ft.Icons.PERSON_ADD,
-                                    text="邀請機器人",
-                                    on_click=lambda e: page.launch_url(bot["invite_url"]),
-                                ),
-                                *(
-                                    [ft.ElevatedButton(
-                                        icon=ft.Icons.HELP_CENTER,
-                                        text="支援伺服器",
-                                        on_click=lambda e: page.launch_url(bot["server_url"]),
-                                    )] if bot.get("server_url") else []
-                                ),
-                                *(
-                                    [ft.ElevatedButton(
-                                        icon=ft.Icons.LINK,
-                                        text="官方網站",
-                                        on_click=lambda e: page.launch_url(bot["web_url"]),
-                                    )] if bot.get("web_url") else []
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
+                        ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.ElevatedButton(
+                                        icon=ft.Icons.PERSON_ADD,
+                                        text="邀請機器人",
+                                        on_click=lambda e: page.launch_url(bot["invite_url"]),
+                                    ),
+                                    *(
+                                        [ft.ElevatedButton(
+                                            icon=ft.Icons.HELP_CENTER,
+                                            text="支援伺服器",
+                                            on_click=lambda e: page.launch_url(bot["server_url"]),
+                                        )] if bot.get("server_url") else []
+                                    ),
+                                    *(
+                                        [ft.ElevatedButton(
+                                            icon=ft.Icons.LINK,
+                                            text="官方網站",
+                                            on_click=lambda e: page.launch_url(bot["web_url"]),
+                                        )] if bot.get("web_url") else []
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            ),
+                            alignment=ft.alignment.center,
                         ),
                         # tags
                         
@@ -282,6 +296,7 @@ def main(page: ft.Page):
                 shape=ft.CircleBorder(),
                 tooltip="返回",
                 offset=ft.Offset(-0.3, 0),
+                scale=ft.Scale(0.9)
             )
             server_view.floating_action_button_location = ft.FloatingActionButtonLocation.START_TOP
             server_view.controls.append(
@@ -290,7 +305,7 @@ def main(page: ft.Page):
                         ft.Container(
                             content=ft.Image(
                                 src=config.cache_image(server["banner_url"], size=1024),
-                                fit=ft.ImageFit.FIT_WIDTH,
+                                fit=ft.ImageFit.COVER,
                             ),
                             width=page.width,
                             height=256,
@@ -318,9 +333,6 @@ def main(page: ft.Page):
                             weight=ft.FontWeight.BOLD,
                             text_align=ft.TextAlign.CENTER
                         ),
-                        *(
-                            [ft.IconButton(icon=ft.Icons.STAR, bgcolor=ft.Colors.GREEN, on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此伺服器為 DCTW 合作夥伴。"))))] if is_partner else []
-                        ),
                     ],
                     alignment=ft.MainAxisAlignment.CENTER,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER
@@ -329,6 +341,20 @@ def main(page: ft.Page):
             server_view.controls.append(
                 ft.Column(
                     [
+                        *(
+                            [
+                                ft.Row(
+                                    [
+                                        ft.IconButton(
+                                            icon=ft.Icons.STAR,
+                                            bgcolor=ft.Colors.GREEN,
+                                            on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此伺服器為 DCTW 合作夥伴。")))
+                                        )
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                )
+                            ] if is_partner else []
+                        ),
                         ft.Row(
                             [
                                 ft.Text(
@@ -341,12 +367,15 @@ def main(page: ft.Page):
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
                         # tags
-                        ft.Row(
-                            [
-                                ft.ElevatedButton(text=config.server_tags[tag][0], icon=config.server_tags[tag][1]) for tag in server.get("tags", [])
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            vertical_alignment=ft.CrossAxisAlignment.START
+                        ft.Container(
+                            ft.Row(
+                                [
+                                    ft.ElevatedButton(text=config.server_tags[tag][0], icon=config.server_tags[tag][1]) for tag in server.get("tags", [])
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.START
+                            ),
+                            alignment=ft.alignment.center,
                         ),
                         ft.Row(
                             [
