@@ -345,7 +345,8 @@ def main(page: ft.Page):
                             [
                                 ft.Row(
                                     [
-                                        ft.IconButton(
+                                        ft.ElevatedButton(
+                                            text="DCTW 合作夥伴",
                                             icon=ft.Icons.STAR,
                                             bgcolor=ft.Colors.GREEN,
                                             on_click=lambda e: page.open(ft.SnackBar(content=ft.Text("此伺服器為 DCTW 合作夥伴。")))
