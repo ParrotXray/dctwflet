@@ -344,7 +344,7 @@ def main(page: ft.Page):
             server_view.floating_action_button = ft.FloatingActionButton(
                 icon=ft.Icons.ARROW_BACK,
                 on_click=lambda e: page.go("/"),
-                bgcolor=ft.Colors.TRANSPARENT,
+                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
                 shape=ft.CircleBorder(),
                 tooltip="返回",
                 offset=ft.Offset(-0.3, 0),
