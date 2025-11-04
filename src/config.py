@@ -12,6 +12,7 @@ from flask import Flask, send_file
 import random
 import string
 import traceback
+from enum import Enum
 
 app = Flask(__name__)
 port = random.randint(10000, 60000)
@@ -198,7 +199,13 @@ def clear_image_cache():
 
 bots, servers, templates = [], [], []
 
-def get_bots(force=False):
+class SortOrder(Enum):
+    NEWEST = "newest"
+    VOTE = "vote"
+    BUMPED = "bumped"
+    SERVER = "server"
+
+def get_bots(sort=SortOrder.BUMPED, tag=None, force=False):
     global bots
     if not force:
         bots = cache("bots")
@@ -214,11 +221,22 @@ def get_bots(force=False):
         )
         response.raise_for_status()
         bots = response.json()["data"]
-        # sort by bumped_at (datetime TZ)
         for bot in bots:
             if not bot.get("bumped_at"):
                 bot["bumped_at"] = "1999-01-01T00:00:00Z"
-        bots.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+            if not bot.get("created_at"):
+                bot["created_at"] = "1999-01-01T00:00:00Z"
+        if sort == SortOrder.VOTE:
+            bots.sort(key=lambda x: x.get("votes", 0), reverse=True)
+        elif sort == SortOrder.NEWEST:
+            bots.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+        elif sort == SortOrder.SERVER:
+            bots.sort(key=lambda x: x.get("servers", 0), reverse=True)
+        elif sort == SortOrder.BUMPED:
+            # sort by bumped_at (datetime TZ)
+            bots.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+        if tag:
+            bots = [bot for bot in bots if tag in bot.get("tags", [])]
         cache("bots", bots, mode="w", expire=60)
         return bots
     except requests.RequestException as e:
@@ -234,7 +252,7 @@ def get_bots(force=False):
             return c
         return []
 
-def get_servers(force=False):
+def get_servers(sort=SortOrder.BUMPED, tag=None, force=False):
     global servers
     if not force:
         servers = cache("servers")
@@ -247,17 +265,26 @@ def get_servers(force=False):
         )
         response.raise_for_status()
         servers = response.json()["data"]
-        # sort by bumped_at (datetime TZ)
         for server in servers:
             if not server.get("bumped_at"):
                 server["bumped_at"] = "1999-01-01T00:00:00Z"
-        servers.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+            if not server.get("created_at"):
+                server["created_at"] = "1999-01-01T00:00:00Z"
+        if sort == SortOrder.VOTE:
+            servers.sort(key=lambda x: x.get("votes", 0), reverse=True)
+        elif sort == SortOrder.NEWEST:
+            servers.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+        elif sort == SortOrder.SERVER:
+            servers.sort(key=lambda x: x.get("members", 0), reverse=True)
+        elif sort == SortOrder.BUMPED:
+            # sort by bumped_at (datetime TZ)
+            servers.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
         cache("servers", servers, mode="w", expire=60)
         return servers
     except requests.RequestException as e:
         print(f"Error fetching servers: {e}")
 
-def get_templates(force=False):
+def get_templates(sort=SortOrder.BUMPED, tag=None, force=False):
     global templates
     if not force:
         templates = cache("templates")
@@ -270,11 +297,18 @@ def get_templates(force=False):
         )
         response.raise_for_status()
         templates = response.json()["data"]
-        # sort by bumped_at (datetime TZ)
         for template in templates:
             if "bumped_at" not in template or not template["bumped_at"]:
                 template["bumped_at"] = "1999-01-01T00:00:00Z"
-        templates.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+            if "created_at" not in template or not template["created_at"]:
+                template["created_at"] = "1999-01-01T00:00:00Z"
+        if sort == SortOrder.VOTE:
+            templates.sort(key=lambda x: x.get("votes", 0), reverse=True)
+        elif sort == SortOrder.NEWEST:
+            templates.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+        elif sort == SortOrder.BUMPED:
+            # sort by bumped_at (datetime TZ)
+            templates.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
         cache("templates", templates, mode="w", expire=60)
         return templates
     except requests.RequestException as e:
@@ -397,11 +431,19 @@ server_tags = {
     "art": ("藝術", ft.Icons.BRUSH),
     "hangout": ("閒聊", ft.Icons.FORUM),
     "programming": ("程式設計", ft.Icons.CODE),
-    "programing": ("程式設計", ft.Icons.CODE),  # bro wtf
+    "programing": ("程式設計", ft.Icons.CODE),  # bro wtf API 作者的英文可能被當了
     "acting": ("表演", ft.Icons.MIC),
     "nsfw": ("NSFW", ft.Icons.DO_NOT_DISTURB),
     "roleplay": ("角色扮演", ft.Icons.PEOPLE),
     "politics": ("政治", ft.Icons.GAVEL)
+}
+
+template_tags = {  # 這根本是亂打的吧
+    "community": ("支援", ft.Icons.GROUP),  # 這個好像應該還好
+    "gaming": ("遊戲", ft.Icons.VIDEOGAME_ASSET),  # 這個也還好
+    "anime": ("大型", ft.Icons.FLASH_ON),  # 我真的搞不懂了 (悲
+    "art": ("趣味", ft.Icons.BRUSH),  # ???????
+    "nsfw": ("NSFW", ft.Icons.DO_NOT_DISTURB),
 }
 
 status_colors = {
