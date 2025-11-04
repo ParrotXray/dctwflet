@@ -17,7 +17,7 @@ app = Flask(__name__)
 port = random.randint(10000, 60000)
 
 app_version = "0.1.0"
-config_version = 4
+config_version = 5
 update_channel = "developer"
 hash = "unknown"
 if hash == "unknown":
@@ -41,6 +41,7 @@ default_config = {
     "app_update_check": "popup",
     "home_index": 0,
     "apikey": "dctw_live_683165bb3e9be69a_TWb0eEaUfXoMuZ9ONbh1RyT12pnjFq6uZQYUnnE8CTj",  # default apikey
+    "nsfw": False,
 }
 
 config_path = os.path.join(datadir, "config.json")

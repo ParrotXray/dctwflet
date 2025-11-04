@@ -58,6 +58,10 @@ def main(page: ft.Page):
         bots = config.get_bots(force=force)
         bots_column.content.controls.clear()
         for bot in bots:
+            if not config.config("nsfw") and bot.get("nsfw", False):
+                continue
+            verified = bot.get("verified", False)
+            is_partner = bot.get("is_partnered", False)
             bots_column.content.controls.append(
                 ft.ListTile(
                     leading=ft.Container(
@@ -77,7 +81,18 @@ def main(page: ft.Page):
                         width=40,
                         height=40,
                     ),
-                    title=ft.Text(bot["name"]),
+                    title=ft.Row(
+                        [
+                            ft.Text(bot["name"]),
+                            *(
+                                [ft.Icon(ft.Icons.VERIFIED, size=16, color=ft.Colors.BLUE)] if verified else []
+                            ),
+                            *(
+                                [ft.Icon(ft.Icons.STAR, size=16, color=ft.Colors.GREEN)] if is_partner else []
+                            ),
+                        ],
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
                     subtitle=ft.Text(bot.get("description", "")),
                     key=str(bot["id"]),
                     on_click=lambda e: page.go(f"/bot/{e.control.key}"),
@@ -89,10 +104,21 @@ def main(page: ft.Page):
         servers = config.get_servers(force=force)
         servers_column.content.controls.clear()
         for server in servers:
+            if not config.config("nsfw") and server.get("nsfw", False):
+                continue
+            is_partner = server.get("is_partnered", False)
             servers_column.content.controls.append(
                 ft.ListTile(
                     leading=ft.CircleAvatar(foreground_image_src=config.cache_image(server["icon_url"], size=128)),
-                    title=ft.Text(server["name"]),
+                    title=ft.Row(
+                        [
+                            ft.Text(server["name"]),
+                            *(
+                                [ft.Icon(ft.Icons.STAR, size=16, color=ft.Colors.GREEN)] if is_partner else []
+                            )
+                        ],
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
                     subtitle=ft.Text(server.get("description", "")),
                     key=str(server["id"]),
                     on_click=lambda e: page.go(f"/server/{e.control.key}"),
@@ -104,6 +130,8 @@ def main(page: ft.Page):
         templates = config.get_templates(force=force)
         templates_column.content.controls.clear()
         for template in templates:
+            if not config.config("nsfw") and template.get("nsfw", False):
+                continue
             templates_column.content.controls.append(
                 ft.ListTile(
                     title=ft.Text(template["name"]),
@@ -579,6 +607,12 @@ def main(page: ft.Page):
                                     ],
                                     value=config.config("theme"),
                                     on_change=lambda e: update_theme(e.control.value),
+                                ),
+                                # show nsfw content
+                                ft.Checkbox(
+                                    label="顯示 NSFW 內容",
+                                    value=config.config("nsfw"),
+                                    on_change=lambda e: config.config("nsfw", e.control.value, "w"),
                                 ),
                                 ft.Dropdown(
                                     label="應用程式更新通知",
