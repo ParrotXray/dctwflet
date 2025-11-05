@@ -55,7 +55,8 @@ def main(page: ft.Page):
     )
     
     def update_bots(e, force=False):
-        bots = config.get_bots(force=force)
+        sort_order = config.config("sort_order_bots")
+        bots = config.get_bots(force=force, sort=config.SortOrder(sort_order))
         bots_column.content.controls.clear()
         listview = ft.ListView(expand=True)
         for bot in bots:
@@ -103,7 +104,8 @@ def main(page: ft.Page):
         page.update()
 
     def update_servers(e, force=False):
-        servers = config.get_servers(force=force)
+        sort_order = config.config("sort_order_servers")
+        servers = config.get_servers(force=force, sort=config.SortOrder(sort_order))
         servers_column.content.controls.clear()
         listview = ft.ListView(expand=True)
         for server in servers:
@@ -131,7 +133,8 @@ def main(page: ft.Page):
         page.update()
 
     def update_templates(e, force=False):
-        templates = config.get_templates(force=force)
+        sort_order = config.config("sort_order_templates")
+        templates = config.get_templates(force=force, sort=config.SortOrder(sort_order))
         templates_column.content.controls.clear()
         listview = ft.ListView(expand=True)
         for template in templates:
@@ -147,13 +150,14 @@ def main(page: ft.Page):
             )
         templates_column.content = listview
         page.update()
-    
+
+    type_map = {0: update_bots, 1: update_servers, 2: update_templates}
+
     def force_update(e):
-        type_map = {0: update_bots, 1: update_servers, 2: update_templates}
         index = home_view.navigation_bar.selected_index
         if index in type_map:
             type_map[index](e, force=True)
-    
+
     def show_bot_detail(bot_id):
         bot_view = ft.View(f"/bot/{bot_id}", vertical_alignment=ft.MainAxisAlignment.START, padding=ft.padding.all(0))
         bot_view.scroll = ft.ScrollMode.AUTO
@@ -602,6 +606,7 @@ def main(page: ft.Page):
                 content=ft.Text("快取已清除。"),
             )
         )
+
     def clear_image_cache(e):
         config.clear_image_cache()
         page.open(
@@ -609,7 +614,40 @@ def main(page: ft.Page):
                 content=ft.Text("圖片快取已清除。"),
             )
         )
+    
+    name_map = {0: "bots", 1: "servers", 2: "templates"}
+
+    def sort_bottomsheet(e):
+        index = home_view.navigation_bar.selected_index
+        def sort_action(e):
+            config.config(f"sort_order_{name_map[index]}", e.control.value, "w")
+            type_map[index](e)
         
+        bs = ft.BottomSheet(
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("排序方式"),
+                        ft.RadioGroup(
+                            content=ft.Column(
+                                [
+                                    ft.Radio(label="按置頂時間排序", value=config.SortOrder.BUMPED.value),
+                                    ft.Radio(label="按投票數量排序", value=config.SortOrder.VOTE.value),
+                                    ft.Radio(label="按新增時間排序", value=config.SortOrder.NEWEST.value),
+                                    *(
+                                        [ft.Radio(label="按伺服器數量排序", value=config.SortOrder.SERVER.value)] if index == 0 else []
+                                    )
+                                ]
+                            ),
+                            on_change=sort_action,
+                            value=config.config(f"sort_order_{name_map[index]}"),
+                        ),
+                    ]
+                ),
+                padding=ft.padding.all(20),
+            )
+        )
+        page.open(bs)
 
     def route_change(route):
         page.views.clear()
@@ -713,6 +751,12 @@ def main(page: ft.Page):
         title=ft.Text("DCTW"),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
         actions=[
+            # sort button
+            ft.IconButton(
+                icon=ft.Icons.SORT,
+                on_click=sort_bottomsheet,
+                tooltip="排序",
+            ),
             ft.IconButton(
                 icon=ft.Icons.REFRESH,
                 on_click=force_update,

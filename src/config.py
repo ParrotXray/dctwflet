@@ -18,7 +18,7 @@ app = Flask(__name__)
 port = random.randint(10000, 60000)
 
 app_version = "0.1.0"
-config_version = 5
+config_version = 6
 update_channel = "developer"
 hash = "unknown"
 if hash == "unknown":
@@ -43,6 +43,9 @@ default_config = {
     "home_index": 0,
     "apikey": "dctw_live_683165bb3e9be69a_TWb0eEaUfXoMuZ9ONbh1RyT12pnjFq6uZQYUnnE8CTj",  # default apikey
     "nsfw": False,
+    "sort_order_bots": "bumped",
+    "sort_order_servers": "bumped",
+    "sort_order_templates": "bumped",
 }
 
 config_path = os.path.join(datadir, "config.json")
@@ -209,48 +212,48 @@ def get_bots(sort=SortOrder.BUMPED, tag=None, force=False):
     global bots
     if not force:
         bots = cache("bots")
-        if bots:
-            return bots
-    try:
-        response = requests.get(
-            "https://dctw.nyanko.host/api/v1/bots",
-            headers={
-                "User-Agent": f"DCTWFlet/{app_version}",
-                "x-api-key": config("apikey", "")
-            }
-        )
-        response.raise_for_status()
-        bots = response.json()["data"]
-        for bot in bots:
-            if not bot.get("bumped_at"):
-                bot["bumped_at"] = "1999-01-01T00:00:00Z"
-            if not bot.get("created_at"):
-                bot["created_at"] = "1999-01-01T00:00:00Z"
-        if sort == SortOrder.VOTE:
-            bots.sort(key=lambda x: x.get("votes", 0), reverse=True)
-        elif sort == SortOrder.NEWEST:
-            bots.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        elif sort == SortOrder.SERVER:
-            bots.sort(key=lambda x: x.get("servers", 0), reverse=True)
-        elif sort == SortOrder.BUMPED:
-            # sort by bumped_at (datetime TZ)
-            bots.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        if tag:
-            bots = [bot for bot in bots if tag in bot.get("tags", [])]
-        cache("bots", bots, mode="w", expire=60)
-        return bots
-    except requests.RequestException as e:
-        print(f"Error fetching bots: {e}")
-        page.open(
-            ft.SnackBar(
-                ft.Text("無法取得機器人列表，請檢查網路連線或 API Key 是否正確。"),
-                bgcolor=ft.Colors.RED,
+    if force or bots is None:
+        try:
+            response = requests.get(
+                "https://dctw.nyanko.host/api/v1/bots",
+                headers={
+                    "User-Agent": f"DCTWFlet/{app_version}",
+                    "x-api-key": config("apikey", "")
+                }
             )
-        )
-        c = cache("bots", force=True)
-        if c:
-            return c
-        return []
+            response.raise_for_status()
+            bots = response.json()["data"]
+            cache("bots", bots, mode="w", expire=60)
+            # return bots
+        except requests.RequestException as e:
+            print(f"Error fetching bots: {e}")
+            page.open(
+                ft.SnackBar(
+                    ft.Text("無法取得機器人列表，請檢查網路連線或 API Key 是否正確。"),
+                    bgcolor=ft.Colors.RED,
+                )
+            )
+            c = cache("bots", force=True)
+            if c:
+                return c
+            return []
+    for bot in bots:
+        if not bot.get("bumped_at"):
+            bot["bumped_at"] = "1999-01-01T00:00:00Z"
+        if not bot.get("created_at"):
+            bot["created_at"] = "1999-01-01T00:00:00Z"
+    if sort == SortOrder.VOTE:
+        bots.sort(key=lambda x: x.get("votes", 0), reverse=True)
+    elif sort == SortOrder.NEWEST:
+        bots.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    elif sort == SortOrder.SERVER:
+        bots.sort(key=lambda x: x.get("servers", 0), reverse=True)
+    elif sort == SortOrder.BUMPED:
+        # sort by bumped_at (datetime TZ)
+        bots.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    if tag:
+        bots = [bot for bot in bots if tag in bot.get("tags", [])]
+    return bots
 
 def get_bot_comments(bot_id):
     try:
@@ -269,43 +272,45 @@ def get_servers(sort=SortOrder.BUMPED, tag=None, force=False):
     global servers
     if not force:
         servers = cache("servers")
-        if servers:
-            return servers
-    try:
-        response = requests.get(
-            "https://dctw.nyanko.host/api/v1/servers",
-            headers={"User-Agent": f"DCTWFlet/{app_version}", "x-api-key": config("apikey", "")}
-        )
-        response.raise_for_status()
-        servers = response.json()["data"]
-        for server in servers:
-            if not server.get("bumped_at"):
-                server["bumped_at"] = "1999-01-01T00:00:00Z"
-            if not server.get("created_at"):
-                server["created_at"] = "1999-01-01T00:00:00Z"
-        if sort == SortOrder.VOTE:
-            servers.sort(key=lambda x: x.get("votes", 0), reverse=True)
-        elif sort == SortOrder.NEWEST:
-            servers.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        elif sort == SortOrder.SERVER:
-            servers.sort(key=lambda x: x.get("members", 0), reverse=True)
-        elif sort == SortOrder.BUMPED:
-            # sort by bumped_at (datetime TZ)
-            servers.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        cache("servers", servers, mode="w", expire=60)
-        return servers
-    except requests.RequestException as e:
-        print(f"Error fetching servers: {e}")
-        page.open(
-            ft.SnackBar(
-                ft.Text("無法取得伺服器列表，請檢查網路連線或 API Key 是否正確。"),
-                bgcolor=ft.Colors.RED,
+    if force or servers is None:
+        try:
+            response = requests.get(
+                "https://dctw.nyanko.host/api/v1/servers",
+                headers={"User-Agent": f"DCTWFlet/{app_version}", "x-api-key": config("apikey", "")}
             )
-        )
-        c = cache("servers", force=True)
-        if c:
-            return c
-        return []
+            response.raise_for_status()
+            servers = response.json()["data"]
+            cache("servers", servers, mode="w", expire=60)
+            # return servers
+        except requests.RequestException as e:
+            print(f"Error fetching servers: {e}")
+            page.open(
+                ft.SnackBar(
+                    ft.Text("無法取得伺服器列表，請檢查網路連線或 API Key 是否正確。"),
+                    bgcolor=ft.Colors.RED,
+                )
+            )
+            c = cache("servers", force=True)
+            if c:
+                return c
+            return []
+    for server in servers:
+        if not server.get("bumped_at"):
+            server["bumped_at"] = "1999-01-01T00:00:00Z"
+        if not server.get("created_at"):
+            server["created_at"] = "1999-01-01T00:00:00Z"
+    if sort == SortOrder.VOTE:
+        servers.sort(key=lambda x: x.get("votes", 0), reverse=True)
+    elif sort == SortOrder.NEWEST:
+        servers.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    elif sort == SortOrder.SERVER:
+        servers.sort(key=lambda x: x.get("members", 0), reverse=True)
+    elif sort == SortOrder.BUMPED:
+        # sort by bumped_at (datetime TZ)
+        servers.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    if tag:
+        servers = [server for server in servers if tag in server.get("tags", [])]
+    return servers
 
 def get_server_comments(server_id):
     try:
@@ -330,41 +335,43 @@ def get_templates(sort=SortOrder.BUMPED, tag=None, force=False):
     global templates
     if not force:
         templates = cache("templates")
-        if templates:
-            return templates
-    try:
-        response = requests.get(
-            "https://dctw.nyanko.host/api/v1/templates",
-            headers={"User-Agent": f"DCTWFlet/{app_version}", "x-api-key": config("apikey", "")}
-        )
-        response.raise_for_status()
-        templates = response.json()["data"]
-        for template in templates:
-            if "bumped_at" not in template or not template["bumped_at"]:
-                template["bumped_at"] = "1999-01-01T00:00:00Z"
-            if "created_at" not in template or not template["created_at"]:
-                template["created_at"] = "1999-01-01T00:00:00Z"
-        if sort == SortOrder.VOTE:
-            templates.sort(key=lambda x: x.get("votes", 0), reverse=True)
-        elif sort == SortOrder.NEWEST:
-            templates.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        elif sort == SortOrder.BUMPED:
-            # sort by bumped_at (datetime TZ)
-            templates.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
-        cache("templates", templates, mode="w", expire=60)
-        return templates
-    except requests.RequestException as e:
-        print(f"Error fetching templates: {e}")
-        page.open(
-            ft.SnackBar(
-                ft.Text("無法取得模板列表，請檢查網路連線或 API Key 是否正確。"),
-                bgcolor=ft.Colors.RED,
+    if force or templates is None:
+        try:
+            response = requests.get(
+                "https://dctw.nyanko.host/api/v1/templates",
+                headers={"User-Agent": f"DCTWFlet/{app_version}", "x-api-key": config("apikey", "")}
             )
-        )
-        c = cache("templates", force=True)
-        if c:
-            return c
-        return []
+            response.raise_for_status()
+            templates = response.json()["data"]
+            cache("templates", templates, mode="w", expire=60)
+            # return templates
+        except requests.RequestException as e:
+            print(f"Error fetching templates: {e}")
+            page.open(
+                ft.SnackBar(
+                    ft.Text("無法取得模板列表，請檢查網路連線或 API Key 是否正確。"),
+                    bgcolor=ft.Colors.RED,
+                )
+            )
+            c = cache("templates", force=True)
+            if c:
+                return c
+            return []
+    for template in templates:
+        if "bumped_at" not in template or not template["bumped_at"]:
+            template["bumped_at"] = "1999-01-01T00:00:00Z"
+        if "created_at" not in template or not template["created_at"]:
+            template["created_at"] = "1999-01-01T00:00:00Z"
+    if sort == SortOrder.VOTE:
+        templates.sort(key=lambda x: x.get("votes", 0), reverse=True)
+    elif sort == SortOrder.NEWEST:
+        templates.sort(key=lambda x: datetime.fromisoformat(x.get("created_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    elif sort == SortOrder.BUMPED:
+        # sort by bumped_at (datetime TZ)
+        templates.sort(key=lambda x: datetime.fromisoformat(x.get("bumped_at", "1999-01-01T00:00:00Z")).astimezone(), reverse=True)
+    if tag:
+        templates = [template for template in templates if tag in template.get("tags", [])]
+    return templates
 
 def get_template_comments(template_id):
     try:
