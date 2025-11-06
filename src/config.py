@@ -17,7 +17,7 @@ from enum import Enum
 app = Flask(__name__)
 port = random.randint(10000, 60000)
 
-app_version = "v0.1.0"
+app_version = "v0.1.1"
 config_version = 7
 update_channel = "developer"
 hash = "unknown"
