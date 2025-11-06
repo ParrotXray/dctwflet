@@ -16,8 +16,8 @@ class Settings:
     """Application Settings"""
 
     app_name: str = "DCTWFlet"
-    app_version: str = "0.1.0"
-    hash: str = "dev"
+    app_version: str = "0.1.2"
+    hash: str = "unknown"
     update_channel: str = "developer"
     data_dir: Path = None
     cache_dir: Path = None
