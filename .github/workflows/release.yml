@@ -223,6 +223,7 @@ jobs:
         run: |
           sed -i 's/hash = ".*"/hash = "'$COMMIT_HASH'"/' src/config.py
           sed -i 's/update_channel = ".*"/update_channel = "release"/' src/config.py
+        shell: bash
 
       - name: Install dependencies
         run: |
