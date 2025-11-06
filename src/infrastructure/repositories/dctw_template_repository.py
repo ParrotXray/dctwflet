@@ -57,7 +57,7 @@ class DctwTemplateRepository(TemplateRepository):
     def _map_to_domain(self, data: dict) -> Template:
         """Map API data to domain model"""
         return Template(
-            id=data["id"],
+            id=int(data["id"]),
             name=data["name"],
             description=data["description"],
             introduce=data.get("introduce", ""),

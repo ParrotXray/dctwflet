@@ -7,7 +7,7 @@ import flet as ft
 import asyncio
 from typing import Optional
 
-from application.services import DiscoveryService
+from application.services import DiscoveryService, PreferenceService
 from domain.discovery.value_objects import (
     FilterCriteria,
     SortOption,
@@ -25,6 +25,9 @@ class ServerListPage:
         self.container = get_container()
         self.discovery_service: DiscoveryService = self.container.resolve(
             DiscoveryService
+        )
+        self.preference_service: PreferenceService = self.container.resolve(
+            PreferenceService
         )
 
         # UI組件
@@ -45,11 +48,7 @@ class ServerListPage:
             value="newest",
             on_change=lambda _: self.page.run_task(self._load_servers),
         )
-        self.nsfw_switch = ft.Switch(
-            label="顯示NSFW",
-            value=False,
-            on_change=lambda _: self.page.run_task(self._load_servers),
-        )
+
         self.progress = ft.ProgressBar(visible=False)
         self._current_filter: Optional[FilterCriteria] = None
 
@@ -71,7 +70,6 @@ class ServerListPage:
                         [
                             ft.Container(self.search_field, expand=True),
                             self.sort_dropdown,
-                            self.nsfw_switch,
                         ],
                         spacing=10,
                     ),
@@ -90,7 +88,8 @@ class ServerListPage:
 
         try:
             search_text = self.search_field.value if self.search_field.value else None
-            nsfw_enabled = self.nsfw_switch.value
+            preferences = await self.preference_service.load_preferences()
+            nsfw_enabled = bool(preferences.nsfw_filter)
 
             self._current_filter = FilterCriteria(
                 search_text=search_text,

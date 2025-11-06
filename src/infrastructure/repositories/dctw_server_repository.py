@@ -59,25 +59,25 @@ class DctwServerRepository(ServerRepository):
 
     def _map_to_domain(self, data: dict) -> Server:
         """Map API data to domain model"""
+        server_id = int(data["id"])
+
         icon_url = data.get("icon_url", "").strip()
 
         if not icon_url:
             icon_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
         invite_url = data.get("invite_url", "").strip()
-
         name = data.get("name", "").strip()
 
         if not name:
-            name = f"Server {data['id']}"
-
-            logger.warning(f"Server {data['id']} has empty name, using fallback")
+            name = f"Server {server_id}"
+            logger.warning(f"Server {server_id} has empty name, using fallback")
 
         if not invite_url:
             invite_url = "https://discord.gg/invalid"
 
         return Server(
-            id=data["id"],
+            id=server_id,
             name=name,
             icon=AvatarUrl(icon_url),
             description=data["description"],

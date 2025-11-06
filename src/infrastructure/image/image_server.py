@@ -90,7 +90,6 @@ class ImageServer:
             host="127.0.0.1",
             port=self._port,
             debug=False,
-            use_reloader=False,
         )
 
     @property

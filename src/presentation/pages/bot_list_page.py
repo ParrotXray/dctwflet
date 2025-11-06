@@ -7,7 +7,7 @@ import flet as ft
 import asyncio
 from typing import Optional
 
-from application.services import DiscoveryService
+from application.services import DiscoveryService, PreferenceService
 from domain.discovery.value_objects import (
     FilterCriteria,
     SortOption,
@@ -26,6 +26,9 @@ class BotListPage:
         self.discovery_service: DiscoveryService = self.container.resolve(
             DiscoveryService
         )
+        self.preference_service: PreferenceService = self.container.resolve(
+            PreferenceService
+        )
 
         # UI組件
         self.bot_list = ft.ListView(spacing=10, padding=20, expand=True)
@@ -43,11 +46,6 @@ class BotListPage:
                 ft.dropdown.Option("bumped", "最近Bump"),
             ],
             value="newest",
-            on_change=lambda _: self.page.run_task(self._load_bots),
-        )
-        self.nsfw_switch = ft.Switch(
-            label="顯示NSFW",
-            value=False,
             on_change=lambda _: self.page.run_task(self._load_bots),
         )
         self.progress = ft.ProgressBar(visible=False)
@@ -71,7 +69,6 @@ class BotListPage:
                         [
                             ft.Container(self.search_field, expand=True),
                             self.sort_dropdown,
-                            self.nsfw_switch,
                         ],
                         spacing=10,
                     ),
@@ -91,7 +88,8 @@ class BotListPage:
 
         try:
             search_text = self.search_field.value if self.search_field.value else None
-            nsfw_enabled = self.nsfw_switch.value
+            preferences = await self.preference_service.load_preferences()
+            nsfw_enabled = bool(preferences.nsfw_filter)
 
             self._current_filter = FilterCriteria(
                 search_text=search_text,
@@ -136,7 +134,7 @@ class BotListPage:
 
     def _create_bot_card(self, bot: Bot) -> ft.Control:
         """Create card"""
-        status_Colors = {
+        status_colors = {
             "online": ft.Colors.GREEN,
             "idle": ft.Colors.YELLOW,
             "dnd": ft.Colors.RED,
@@ -187,7 +185,7 @@ class BotListPage:
                                                 ft.Icon(
                                                     ft.Icons.CIRCLE,
                                                     size=10,
-                                                    color=status_Colors.get(
+                                                    color=status_colors.get(
                                                         bot.status.value, ft.Colors.GREY
                                                     ),
                                                 ),
@@ -263,35 +261,7 @@ class BotListPage:
 
     def _show_bot_detail(self, bot: Bot):
         """Show details"""
-        dialog = ft.AlertDialog(
-            title=ft.Text(bot.name),
-            content=ft.Column(
-                [
-                    ft.Image(src=bot.avatar.value, width=100, height=100),
-                    ft.Text(f"狀態: {bot.status.value}"),
-                    ft.Text(f"描述: {bot.description}"),
-                    ft.Text(f"投票: {bot.statistics.votes}"),
-                    ft.Text(f"伺服器: {bot.statistics.servers}"),
-                ],
-                tight=True,
-                scroll=ft.ScrollMode.AUTO,
-            ),
-            actions=[
-                ft.TextButton("關閉", on_click=lambda _: self._close_dialog(dialog)),
-                ft.ElevatedButton(
-                    "邀請",
-                    on_click=lambda _: self.page.launch_url(bot.links.invite.value),
-                ),
-            ],
-        )
-        self.page.dialog = dialog
-        dialog.open = True
-        self.page.update()
-
-    def _close_dialog(self, dialog):
-        """Close dialog"""
-        dialog.open = False
-        self.page.update()
+        self.page.go(f"/bot/{bot.id}")
 
     async def _on_search(self):
         """Search event handler"""

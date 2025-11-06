@@ -60,12 +60,12 @@ class DctwBotRepository(BotRepository):
 
     def _map_to_domain(self, data: dict) -> Bot:
         """Map API data to domain model"""
+
+        bot_id = int(data["id"])
         name = data.get("name", "").strip()
-
         if not name:
-            name = f"Bot {data['id']}"
-
-            logger.warning(f"Bot {data['id']} has empty name, using fallback")
+            name = f"Bot {bot_id}"
+            logger.warning(f"Bot {bot_id} has empty name, using fallback")
 
         avatar_url = data.get("avatar_url", "").strip()
 
@@ -78,7 +78,7 @@ class DctwBotRepository(BotRepository):
             invite_url = "https://discord.com/oauth2/authorize?client_id=0"
 
         return Bot(
-            id=data["id"],
+            id=bot_id,
             name=name,
             avatar=AvatarUrl(avatar_url),
             description=data["description"],
