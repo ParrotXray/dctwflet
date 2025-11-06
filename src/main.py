@@ -661,6 +661,12 @@ def main(page: ft.Page):
             template_id = page.route.split("/template/")[1]
             show_template_detail(template_id)
         elif page.route.startswith("/settings"):
+            update_channel_dropdown_options = [
+                ft.dropdown.Option("release", "正式版"),
+                ft.dropdown.Option("nightly", "開發版"),
+            ]
+            if config.update_channel == "developer":
+                update_channel_dropdown_options.append(ft.dropdown.Option("developer", "開發者版"))
             page.views.append(
                 ft.View(
                     "/settings",
@@ -690,13 +696,7 @@ def main(page: ft.Page):
                                 # app update
                                 ft.Dropdown(
                                     label="應用程式更新頻道",
-                                    options=[
-                                        ft.dropdown.Option("release", "正式版"),
-                                        ft.dropdown.Option("nightly", "開發版"),
-                                        *(
-                                            [ft.dropdown.Option("developer", "開發者版")] if config.update_channel == "developer" else [],
-                                        )
-                                    ],
+                                    options=update_channel_dropdown_options,
                                     value=config.config("update_channel"),
                                     on_change=lambda e: config.config("update_channel", e.control.value, "w"),
                                 ),
