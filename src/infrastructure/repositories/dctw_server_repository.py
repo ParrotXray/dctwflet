@@ -75,6 +75,12 @@ class DctwServerRepository(ServerRepository):
 
         if not invite_url:
             invite_url = "https://discord.gg/invalid"
+        
+        if not data.get("bumped_at"):
+            data["bumped_at"] = "1999-01-01T00:00:00Z"
+        
+        if not data.get("created_at"):
+            data["created_at"] = "1999-01-01T00:00:00Z"
 
         return Server(
             id=server_id,
@@ -94,8 +100,8 @@ class DctwServerRepository(ServerRepository):
             ],
             links=ServerLinks(invite=InviteUrl(invite_url)),
             timestamps=Timestamps(
-                created_at=self._parse_datetime(data.get("created_at")),
-                bumped_at=self._parse_datetime(data.get("bumped_at")),
+                created_at=self._parse_datetime(data.get("created_at", "1999-01-01T00:00:00Z")),
+                bumped_at=self._parse_datetime(data.get("bumped_at", "1999-01-01T00:00:00Z")),
             ),
             banner=(
                 BannerUrl(data["banner_url"])
@@ -136,7 +142,7 @@ class DctwServerRepository(ServerRepository):
             return value
         if isinstance(value, str):
             try:
-                return datetime.fromisoformat(value.replace("Z", "+00:00"))
+                return datetime.fromisoformat(value).astimezone(timezone.utc)
             except:
                 pass
         return datetime.now(timezone.utc)

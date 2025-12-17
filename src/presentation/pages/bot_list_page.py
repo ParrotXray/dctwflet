@@ -45,7 +45,7 @@ class BotListPage:
                 ft.dropdown.Option("servers", "伺服器數"),
                 ft.dropdown.Option("bumped", "最近置頂"),
             ],
-            value="newest",
+            value="bumped",
             width=150,
             on_change=lambda _: self.page.run_task(self._load_bots),
         )
