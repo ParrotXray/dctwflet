@@ -96,12 +96,16 @@ async def main(page: ft.Page):
             current_tab[0] = index
 
             if index == 0:
+                page.title = "DCTW - 機器人清單"
                 content_container.content = bot_page.build()
             elif index == 1:
+                page.title = "DCTW - 伺服器清單"
                 content_container.content = server_page.build()
             elif index == 2:
+                page.title = "DCTW - 模板清單"
                 content_container.content = template_page.build()
             elif index == 3:
+                page.title = "DCTW - 設置"
                 content_container.content = settings_page.build()
 
             page.update()
