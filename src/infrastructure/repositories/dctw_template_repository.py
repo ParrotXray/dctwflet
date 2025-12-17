@@ -73,6 +73,7 @@ class DctwTemplateRepository(TemplateRepository):
                 created_at=self._parse_datetime(data.get("created_at")),
                 bumped_at=self._parse_datetime(data.get("bumped_at")),
             ),
+            pinned=data.get("pinned", False),
         )
 
     def _serialize_template(self, template: Template) -> dict:

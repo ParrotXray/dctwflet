@@ -107,6 +107,7 @@ class DctwBotRepository(BotRepository):
                 if data.get("banner_url") and data.get("banner_url").strip()
                 else None
             ),
+            pinned=data.get("pinned", False),
         )
 
     def _serialize_bot(self, bot: Bot) -> dict:
@@ -130,6 +131,7 @@ class DctwBotRepository(BotRepository):
             "web_url": bot.links.website,
             "created_at": bot.timestamps.created_at.isoformat(),
             "bumped_at": bot.timestamps.bumped_at.isoformat(),
+            "pinned": bot.pinned,
         }
 
     def _deserialize_bot(self, data: dict) -> Bot:

@@ -15,9 +15,15 @@ from presentation.pages import (
     BotDetailPage,
     ServerListPage,
     TemplateListPage,
+    ServerListPage,
+    TemplateListPage,
     SettingsPage,
+    ServerDetailPage,
+    TemplateDetailPage,
 )
 from infrastructure.di import get_container
+from infrastructure.image import ImageServer
+from application.services import PreferenceService
 from infrastructure.image import ImageServer
 
 
@@ -33,7 +39,19 @@ async def main(page: ft.Page):
     """Application main entry point"""
 
     page.title = "DCTWFlet"
-    page.theme_mode = ft.ThemeMode.SYSTEM
+
+    # Resolve services
+    container = get_container()
+    pref_service: PreferenceService = container.resolve(PreferenceService)
+    
+    # Load preferences
+    try:
+        prefs = await pref_service.load_preferences()
+        page.theme_mode = prefs.theme.value
+    except Exception as e:
+        logger.error(f"Failed to load preferences: {e}")
+        page.theme_mode = ft.ThemeMode.SYSTEM
+
     page.padding = 0
 
     # Configure theme with consistent NavigationBar height across light and dark modes
@@ -93,17 +111,17 @@ async def main(page: ft.Page):
                 ft.NavigationBarDestination(
                     icon=ft.Icons.SMART_TOY_OUTLINED,
                     selected_icon=ft.Icons.SMART_TOY,
-                    label="Bots",
+                    label="機器人",
                 ),
                 ft.NavigationBarDestination(
                     icon=ft.Icons.DNS_OUTLINED,
                     selected_icon=ft.Icons.DNS,
-                    label="Servers",
+                    label="伺服器",
                 ),
                 ft.NavigationBarDestination(
                     icon=ft.Icons.COPY_ALL_OUTLINED,
                     selected_icon=ft.Icons.COPY_ALL,
-                    label="Templates",
+                    label="範本",
                 ),
                 ft.NavigationBarDestination(
                     icon=ft.Icons.SETTINGS_OUTLINED,
@@ -164,6 +182,54 @@ async def main(page: ft.Page):
             padding=0,
         )
 
+    def create_server_detail_view(server_id: str) -> ft.View:
+        """Create server detail view"""
+        detail_page = ServerDetailPage(page, server_id)
+
+        return ft.View(
+            f"/server/{server_id}",
+            [
+                ft.Container(
+                    content=detail_page.build(),
+                    expand=True,
+                )
+            ],
+            appbar=ft.AppBar(
+                title=ft.Text("伺服器詳情"),
+                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                leading=ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK,
+                    on_click=lambda e: page.go("/"),
+                ),
+                automatically_imply_leading=False,
+            ),
+            padding=0,
+        )
+
+    def create_template_detail_view(template_id: str) -> ft.View:
+        """Create template detail view"""
+        detail_page = TemplateDetailPage(page, template_id)
+
+        return ft.View(
+            f"/template/{template_id}",
+            [
+                ft.Container(
+                    content=detail_page.build(),
+                    expand=True,
+                )
+            ],
+            appbar=ft.AppBar(
+                title=ft.Text("範本詳情"),
+                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                leading=ft.IconButton(
+                    icon=ft.Icons.ARROW_BACK,
+                    on_click=lambda e: page.go("/"),
+                ),
+                automatically_imply_leading=False,
+            ),
+            padding=0,
+        )
+
     def route_change(e):
         """Handle route changes"""
         page.views.clear()
@@ -176,6 +242,16 @@ async def main(page: ft.Page):
             bot_id = page.route.split("/bot/")[1]
             page.views.append(create_home_view())
             page.views.append(create_bot_detail_view(bot_id))
+        elif page.route.startswith("/server/"):
+            # Extract server ID from route
+            server_id = page.route.split("/server/")[1]
+            page.views.append(create_home_view())
+            page.views.append(create_server_detail_view(server_id))
+        elif page.route.startswith("/template/"):
+            # Extract template ID from route
+            template_id = page.route.split("/template/")[1]
+            page.views.append(create_home_view())
+            page.views.append(create_template_detail_view(template_id))
         else:
             # Unknown route
             page.views.append(create_home_view())

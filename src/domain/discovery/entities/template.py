@@ -33,6 +33,7 @@ class Template(Entity[int]):
         tags: List[TemplateTag],
         links: TemplateLinks,
         timestamps: Timestamps,
+        pinned: bool = False,
     ):
         super().__init__(id)
         self._validate_name(name)
@@ -43,11 +44,17 @@ class Template(Entity[int]):
         self._statistics = statistics
         self._tags = tags
         self._links = links
+        self._links = links
         self._timestamps = timestamps
+        self._pinned = pinned
 
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def pinned(self) -> bool:
+        return self._pinned
 
     @property
     def description(self) -> str:

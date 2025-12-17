@@ -61,7 +61,7 @@ class BotListPage:
             [
                 # Title bar
                 ft.Container(
-                    content=ft.Text("Discord Bots", size=24, weight=ft.FontWeight.BOLD),
+                    content=ft.Text("Discord 機器人", size=24, weight=ft.FontWeight.BOLD),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
                 ),
@@ -157,6 +157,10 @@ class BotListPage:
             badges.append(
                 ft.Icon(ft.Icons.WORKSPACE_PREMIUM, color=ft.Colors.PURPLE, size=16)
             )
+        if bot.pinned:
+            badges.append(
+                ft.Icon(ft.Icons.PUSH_PIN, color=ft.Colors.ORANGE, size=16)
+            )
 
         return ft.Card(
             content=ft.Container(
@@ -176,6 +180,8 @@ class BotListPage:
                                                     bot.name,
                                                     size=18,
                                                     weight=ft.FontWeight.BOLD,
+                                                    max_lines=1,
+                                                    overflow=ft.TextOverflow.ELLIPSIS,
                                                 ),
                                                 *badges,
                                             ],

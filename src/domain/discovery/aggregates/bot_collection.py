@@ -52,14 +52,18 @@ class BotCollection(AggregateRoot):
     def sort_by(self, bots: List[Bot], option: SortOption) -> List[Bot]:
         """Sort"""
         if option == SortOption.NEWEST:
-            return sorted(bots, key=lambda b: b.timestamps.created_at, reverse=True)
+            sorted_list = sorted(bots, key=lambda b: b.timestamps.created_at, reverse=True)
         elif option == SortOption.VOTES:
-            return sorted(bots, key=lambda b: b.statistics.votes, reverse=True)
+            sorted_list = sorted(bots, key=lambda b: b.statistics.votes, reverse=True)
         elif option == SortOption.SERVERS:
-            return sorted(bots, key=lambda b: b.statistics.servers, reverse=True)
+            sorted_list = sorted(bots, key=lambda b: b.statistics.servers, reverse=True)
         elif option == SortOption.BUMPED:
-            return sorted(bots, key=lambda b: b.timestamps.bumped_at, reverse=True)
-        return bots
+            sorted_list = sorted(bots, key=lambda b: b.timestamps.bumped_at, reverse=True)
+        else:
+            sorted_list = bots
+
+        # Always put pinned items at the top
+        return sorted(sorted_list, key=lambda b: b.pinned, reverse=True)
 
     def find_by_id(self, bot_id: int) -> Optional[Bot]:
         """Find Bot by ID"""

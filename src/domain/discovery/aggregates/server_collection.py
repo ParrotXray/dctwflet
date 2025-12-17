@@ -52,14 +52,18 @@ class ServerCollection(AggregateRoot):
     def sort_by(self, servers: List[Server], option: SortOption) -> List[Server]:
         """Sort"""
         if option == SortOption.NEWEST:
-            return sorted(servers, key=lambda s: s.timestamps.created_at, reverse=True)
+            sorted_list = sorted(servers, key=lambda s: s.timestamps.created_at, reverse=True)
         elif option == SortOption.VOTES:
-            return sorted(servers, key=lambda s: s.statistics.votes, reverse=True)
+            sorted_list = sorted(servers, key=lambda s: s.statistics.votes, reverse=True)
         elif option == SortOption.MEMBERS:
-            return sorted(servers, key=lambda s: s.statistics.members, reverse=True)
+            sorted_list = sorted(servers, key=lambda s: s.statistics.members, reverse=True)
         elif option == SortOption.BUMPED:
-            return sorted(servers, key=lambda s: s.timestamps.bumped_at, reverse=True)
-        return servers
+            sorted_list = sorted(servers, key=lambda s: s.timestamps.bumped_at, reverse=True)
+        else:
+            sorted_list = servers
+
+        # Always put pinned items at the top
+        return sorted(sorted_list, key=lambda s: s.pinned, reverse=True)
 
     def find_by_id(self, server_id: int) -> Optional[Server]:
         """Find Server by ID"""

@@ -33,7 +33,7 @@ class TemplateListPage:
         # UI組件
         self.template_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋Template",
+            label="搜尋範本",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -60,7 +60,7 @@ class TemplateListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "Server Templates", size=24, weight=ft.FontWeight.BOLD
+                        "伺服器範本", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -140,6 +140,10 @@ class TemplateListPage:
             for tag in template.tags[:3]
         ]
 
+        pinned_icon = []
+        if template.pinned:
+            pinned_icon.append(ft.Icon(ft.Icons.PUSH_PIN, color=ft.Colors.ORANGE, size=16))
+
         return ft.Card(
             content=ft.Container(
                 content=ft.Column(
@@ -153,10 +157,18 @@ class TemplateListPage:
                                 ),
                                 ft.Column(
                                     [
-                                        ft.Text(
-                                            template.name,
-                                            size=18,
-                                            weight=ft.FontWeight.BOLD,
+                                        ft.Row(
+                                            [
+                                                ft.Text(
+                                                    template.name,
+                                                    size=18,
+                                                    weight=ft.FontWeight.BOLD,
+                                                    max_lines=1,
+                                                    overflow=ft.TextOverflow.ELLIPSIS,
+                                                ),
+                                                *pinned_icon,
+                                            ],
+                                            spacing=5,
                                         ),
                                     ],
                                     spacing=2,
@@ -197,8 +209,8 @@ class TemplateListPage:
                                 ),
                                 ft.OutlinedButton(
                                     "詳情",
-                                    on_click=lambda _, t=template: self._show_template_detail(
-                                        t
+                                    on_click=lambda _, t=template: self.page.go(
+                                        f"/template/{t.id}"
                                     ),
                                 ),
                             ],

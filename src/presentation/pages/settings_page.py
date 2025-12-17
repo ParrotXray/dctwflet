@@ -38,7 +38,7 @@ class SettingsPage:
         )
 
         self.api_key_field = ft.TextField(
-            label="API密鑰",
+            label="API金鑰",
             password=True,
             can_reveal_password=True,
         )
@@ -62,7 +62,7 @@ class SettingsPage:
             [
                 # Title bar
                 ft.Container(
-                    content=ft.Text("設置", size=24, weight=ft.FontWeight.BOLD),
+                    content=ft.Text("應用程式設定", size=24, weight=ft.FontWeight.BOLD),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
                 ),
@@ -85,7 +85,7 @@ class SettingsPage:
                             ft.Divider(),
                             self.api_key_field,
                             ft.OutlinedButton(
-                                "Save API key",
+                                "儲存 API 金鑰",
                                 icon=ft.Icons.SAVE,
                                 on_click=lambda _: self.page.run_task(
                                     self._save_api_key

@@ -50,14 +50,18 @@ class TemplateCollection(AggregateRoot):
     def sort_by(self, templates: List[Template], option: SortOption) -> List[Template]:
         """Sort"""
         if option == SortOption.NEWEST:
-            return sorted(
+            sorted_list = sorted(
                 templates, key=lambda t: t.timestamps.created_at, reverse=True
             )
         elif option == SortOption.VOTES:
-            return sorted(templates, key=lambda t: t.statistics.votes, reverse=True)
+            sorted_list = sorted(templates, key=lambda t: t.statistics.votes, reverse=True)
         elif option == SortOption.BUMPED:
-            return sorted(templates, key=lambda t: t.timestamps.bumped_at, reverse=True)
-        return templates
+            sorted_list = sorted(templates, key=lambda t: t.timestamps.bumped_at, reverse=True)
+        else:
+            sorted_list = templates
+
+        # Always put pinned items at the top
+        return sorted(sorted_list, key=lambda t: t.pinned, reverse=True)
 
     def find_by_id(self, template_id: int) -> Optional[Template]:
         """Find Template by ID"""

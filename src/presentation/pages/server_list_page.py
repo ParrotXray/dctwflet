@@ -33,7 +33,7 @@ class ServerListPage:
         # UI組件
         self.server_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋Server",
+            label="搜尋伺服器",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -61,7 +61,7 @@ class ServerListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "Discord Servers", size=24, weight=ft.FontWeight.BOLD
+                        "Discord 伺服器", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -145,6 +145,10 @@ class ServerListPage:
             badges.append(
                 ft.Icon(ft.Icons.WORKSPACE_PREMIUM, color=ft.Colors.PURPLE, size=16)
             )
+        if server.pinned:
+            badges.append(
+                ft.Icon(ft.Icons.PUSH_PIN, color=ft.Colors.ORANGE, size=16)
+            )
 
         return ft.Card(
             content=ft.Container(
@@ -164,6 +168,8 @@ class ServerListPage:
                                                     server.name,
                                                     size=18,
                                                     weight=ft.FontWeight.BOLD,
+                                                    max_lines=1,
+                                                    overflow=ft.TextOverflow.ELLIPSIS,
                                                 ),
                                                 *badges,
                                             ],
@@ -216,8 +222,8 @@ class ServerListPage:
                                 ),
                                 ft.OutlinedButton(
                                     "詳情",
-                                    on_click=lambda _, s=server: self._show_server_detail(
-                                        s
+                                    on_click=lambda _, s=server: self.page.go(
+                                        f"/server/{s.id}"
                                     ),
                                 ),
                             ],

@@ -39,6 +39,7 @@ class Server(Entity[int]):
         links: ServerLinks,
         timestamps: Timestamps,
         banner: Optional[BannerUrl] = None,
+        pinned: bool = False,
     ):
         super().__init__(id)
         self._validate_name(name)
@@ -52,11 +53,17 @@ class Server(Entity[int]):
         self._statistics = statistics
         self._tags = tags
         self._links = links
+        self._links = links
         self._timestamps = timestamps
+        self._pinned = pinned
 
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def pinned(self) -> bool:
+        return self._pinned
 
     @property
     def icon(self) -> AvatarUrl:

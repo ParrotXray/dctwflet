@@ -102,6 +102,7 @@ class DctwServerRepository(ServerRepository):
                 if data.get("banner_url") and data.get("banner_url").strip()
                 else None
             ),
+            pinned=data.get("pinned", False),
         )
 
     def _serialize_server(self, server: Server) -> dict:
@@ -121,6 +122,7 @@ class DctwServerRepository(ServerRepository):
             "invite_url": server.links.invite.value,
             "created_at": server.timestamps.created_at.isoformat(),
             "bumped_at": server.timestamps.bumped_at.isoformat(),
+            "pinned": server.pinned,
         }
 
     def _deserialize_server(self, data: dict) -> Server:
