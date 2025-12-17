@@ -11,10 +11,10 @@ from application.services import DiscoveryService, PreferenceService
 from domain.discovery.value_objects import (
     FilterCriteria,
     SortOption,
-    BotTag,
 )
 from domain.discovery.entities import Bot
 from infrastructure.di import get_container
+from presentation.tag_mappings import BOT_TAGS
 
 
 class BotListPage:
@@ -142,13 +142,16 @@ class BotListPage:
             "offline": ft.Colors.GREY,
         }
 
-        tag_chips = [
-            ft.Chip(
-                label=ft.Text(tag.name),
-                bgcolor=ft.Colors.BLUE_100,
+        tag_chips = []
+        for tag in bot.tags[:3]:
+            display_name, icon = BOT_TAGS.get(tag.name, (tag.name, ft.Icons.TAG))
+            tag_chips.append(
+                ft.Chip(
+                    label=ft.Text(display_name),
+                    leading=ft.Icon(icon, size=16),
+                    bgcolor=ft.Colors.BLUE_100,
+                )
             )
-            for tag in bot.tags[:3]
-        ]
 
         badges = []
         if bot.verified:

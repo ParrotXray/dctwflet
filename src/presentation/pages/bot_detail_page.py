@@ -6,6 +6,7 @@ from domain.discovery.entities import Bot
 from domain.shared import EntityNotFoundException
 from infrastructure.di import get_container
 from infrastructure.image import ImageServer
+from presentation.tag_mappings import BOT_TAGS
 
 
 class BotDetailPage:
@@ -24,20 +25,7 @@ class BotDetailPage:
 
     def _get_tag_info(self, tag_name: str) -> tuple[str, str]:
         """Get tag display name and icon"""
-
-        tag_map = {
-            "music": ("音樂", ft.Icons.MUSIC_NOTE),
-            "minigames": ("小遊戲", ft.Icons.GAMES),
-            "fun": ("娛樂", ft.Icons.EMOJI_EMOTIONS),
-            "utility": ("工具", ft.Icons.BUILD),
-            "management": ("管理", ft.Icons.ADMIN_PANEL_SETTINGS),
-            "customizable": ("可自訂", ft.Icons.TUNE),
-            "automation": ("自動化", ft.Icons.AUTORENEW),
-            "roleplay": ("角色扮演", ft.Icons.THEATER_COMEDY),
-            "nsfw": ("NSFW", ft.Icons.EIGHTEEN_UP_RATING),
-        }
-
-        return tag_map.get(tag_name, (tag_name, ft.Icons.TAG))
+        return BOT_TAGS.get(tag_name, (tag_name, ft.Icons.TAG))
 
     def _get_status_color(self, status: str) -> str:
         """Get status indicator color"""

@@ -5,6 +5,7 @@ from application.services import DiscoveryService
 from domain.discovery.entities import Template
 from domain.shared import EntityNotFoundException
 from infrastructure.di import get_container
+from presentation.tag_mappings import TEMPLATE_TAGS
 
 
 class TemplateDetailPage:
@@ -22,19 +23,7 @@ class TemplateDetailPage:
 
     def _get_tag_info(self, tag_name: str) -> tuple[str, str]:
         """Get tag display name and icon"""
-        tag_map = {
-            "community": ("社群", ft.Icons.PEOPLE),
-            "gaming": ("遊戲", ft.Icons.GAMES),
-            "music": ("音樂", ft.Icons.MUSIC_NOTE),
-            "technology": ("科技", ft.Icons.COMPUTER),
-            "roleplay": ("角色扮演", ft.Icons.THEATER_COMEDY),
-            "anime": ("動漫", ft.Icons.MOVIE),
-            "design": ("設計", ft.Icons.BRUSH),
-            "streamer": ("實況主", ft.Icons.VIDEOCAM),
-            "bot": ("機器人", ft.Icons.SMART_TOY),
-            "aesthetic": ("美學", ft.Icons.AUTO_AWESOME),
-        }
-        return tag_map.get(tag_name, (tag_name, ft.Icons.TAG))
+        return TEMPLATE_TAGS.get(tag_name, (tag_name, ft.Icons.TAG))
 
     def build(self) -> ft.Control:
         """Build page UI"""

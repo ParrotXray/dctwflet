@@ -54,6 +54,7 @@ class ServerTag(Tag):
         "art",
         "hangout",
         "programming",
+        "programing",
         "acting",
         "nsfw",
         "roleplay",

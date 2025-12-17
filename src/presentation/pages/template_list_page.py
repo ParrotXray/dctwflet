@@ -15,6 +15,7 @@ from domain.discovery.value_objects import (
 )
 from domain.discovery.entities import Template
 from infrastructure.di import get_container
+from presentation.tag_mappings import TEMPLATE_TAGS
 
 
 class TemplateListPage:
@@ -33,7 +34,7 @@ class TemplateListPage:
         # UI組件
         self.template_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋範本",
+            label="搜尋Template",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -60,7 +61,7 @@ class TemplateListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "伺服器範本", size=24, weight=ft.FontWeight.BOLD
+                        "Server Templates", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -135,10 +136,16 @@ class TemplateListPage:
 
     def _create_template_card(self, template: Template) -> ft.Control:
         """Create card"""
-        tag_chips = [
-            ft.Chip(label=ft.Text(tag.name), bgcolor=ft.Colors.ORANGE_100)
-            for tag in template.tags[:3]
-        ]
+        tag_chips = []
+        for tag in template.tags[:3]:
+            display_name, icon = TEMPLATE_TAGS.get(tag.name, (tag.name, ft.Icons.TAG))
+            tag_chips.append(
+                ft.Chip(
+                    label=ft.Text(display_name),
+                    leading=ft.Icon(icon, size=16),
+                    bgcolor=ft.Colors.ORANGE_100,
+                )
+            )
 
         pinned_icon = []
         if template.pinned:

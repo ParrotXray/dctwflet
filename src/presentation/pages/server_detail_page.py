@@ -7,6 +7,7 @@ from domain.discovery.entities import Server
 from domain.shared import EntityNotFoundException
 from infrastructure.di import get_container
 from infrastructure.image import ImageServer
+from presentation.tag_mappings import SERVER_TAGS
 
 
 class ServerDetailPage:
@@ -25,26 +26,7 @@ class ServerDetailPage:
 
     def _get_tag_info(self, tag_name: str) -> tuple[str, str]:
         """Get tag display name and icon"""
-        # Server tags mapping
-        tag_map = {
-            "community": ("社群", ft.Icons.PEOPLE),
-            "gaming": ("遊戲", ft.Icons.GAMES),
-            "music": ("音樂", ft.Icons.MUSIC_NOTE),
-            "technology": ("科技", ft.Icons.COMPUTER),
-            "language": ("語言", ft.Icons.LANGUAGE),
-            "programming": ("程式設計", ft.Icons.CODE),
-            "anime": ("動漫", ft.Icons.MOVIE),
-            "movies": ("電影", ft.Icons.LOCAL_MOVIES),
-            "art": ("藝術", ft.Icons.PALETTE),
-            "roleplay": ("角色扮演", ft.Icons.THEATER_COMEDY),
-            "meme": ("迷因", ft.Icons.SENTIMENT_VERY_SATISFIED),
-            "social": ("交友", ft.Icons.FAVORITE),
-            "news": ("新聞", ft.Icons.NEWSPAPER),
-            "other": ("其他", ft.Icons.MORE_HORIZ),
-            "nsfw": ("NSFW", ft.Icons.EIGHTEEN_UP_RATING),
-        }
-
-        return tag_map.get(tag_name, (tag_name, ft.Icons.TAG))
+        return SERVER_TAGS.get(tag_name, (tag_name, ft.Icons.TAG))
 
     def _cache_image(self, url: str) -> str:
         """Cache image and return local URL"""

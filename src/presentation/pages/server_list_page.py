@@ -15,6 +15,7 @@ from domain.discovery.value_objects import (
 )
 from domain.discovery.entities import Server
 from infrastructure.di import get_container
+from presentation.tag_mappings import SERVER_TAGS
 
 
 class ServerListPage:
@@ -33,7 +34,7 @@ class ServerListPage:
         # UI組件
         self.server_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋伺服器",
+            label="搜尋Server",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -61,7 +62,7 @@ class ServerListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "Discord 伺服器", size=24, weight=ft.FontWeight.BOLD
+                        "Discord Servers", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -135,10 +136,16 @@ class ServerListPage:
 
     def _create_server_card(self, server: Server) -> ft.Control:
         """Create card"""
-        tag_chips = [
-            ft.Chip(label=ft.Text(tag.name), bgcolor=ft.Colors.GREEN_100)
-            for tag in server.tags[:3]
-        ]
+        tag_chips = []
+        for tag in server.tags[:3]:
+            display_name, icon = SERVER_TAGS.get(tag.name, (tag.name, ft.Icons.TAG))
+            tag_chips.append(
+                ft.Chip(
+                    label=ft.Text(display_name),
+                    leading=ft.Icon(icon, size=16),
+                    bgcolor=ft.Colors.GREEN_100,
+                )
+            )
 
         badges = []
         if server.is_partnered:
