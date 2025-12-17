@@ -33,7 +33,7 @@ class BotListPage:
         # UI組件
         self.bot_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋Bot",
+            label="搜尋機器人...",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -43,7 +43,7 @@ class BotListPage:
                 ft.dropdown.Option("newest", "最新"),
                 ft.dropdown.Option("votes", "投票數"),
                 ft.dropdown.Option("servers", "伺服器數"),
-                ft.dropdown.Option("bumped", "最近Bump"),
+                ft.dropdown.Option("bumped", "最近置頂"),
             ],
             value="newest",
             width=150,
@@ -61,7 +61,7 @@ class BotListPage:
             [
                 # Title bar
                 ft.Container(
-                    content=ft.Text("Discord 機器人", size=24, weight=ft.FontWeight.BOLD),
+                    content=ft.Text("Discord 機器人清單", size=24, weight=ft.FontWeight.BOLD),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
                 ),
@@ -122,7 +122,7 @@ class BotListPage:
         if not bots:
             self.bot_list.controls.append(
                 ft.Container(
-                    content=ft.Text("沒有找到Bot", size=16, color=ft.Colors.GREY),
+                    content=ft.Text("找不到機器人 :(", size=16, color=ft.Colors.GREY),
                     alignment=ft.alignment.center,
                     padding=50,
                 )

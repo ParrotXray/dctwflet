@@ -34,7 +34,7 @@ class ServerListPage:
         # UI組件
         self.server_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋Server",
+            label="搜尋伺服器...",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -44,7 +44,7 @@ class ServerListPage:
                 ft.dropdown.Option("newest", "最新"),
                 ft.dropdown.Option("votes", "投票數"),
                 ft.dropdown.Option("members", "成員數"),
-                ft.dropdown.Option("bumped", "最近Bump"),
+                ft.dropdown.Option("bumped", "最近置頂"),
             ],
             value="newest",
             width=150,
@@ -62,7 +62,7 @@ class ServerListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "Discord Servers", size=24, weight=ft.FontWeight.BOLD
+                        "Discord 伺服器清單", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -123,7 +123,7 @@ class ServerListPage:
         if not servers:
             self.server_list.controls.append(
                 ft.Container(
-                    content=ft.Text("沒有找到Server", size=16, color=ft.Colors.GREY),
+                    content=ft.Text("找不到伺服器 :(", size=16, color=ft.Colors.GREY),
                     alignment=ft.alignment.center,
                     padding=50,
                 )

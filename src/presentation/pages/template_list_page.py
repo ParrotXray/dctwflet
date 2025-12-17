@@ -34,7 +34,7 @@ class TemplateListPage:
         # UI組件
         self.template_list = ft.ListView(spacing=10, padding=20, expand=True)
         self.search_field = ft.TextField(
-            label="搜尋Template",
+            label="搜尋模板...",
             prefix_icon=ft.Icons.SEARCH,
             on_submit=lambda _: self.page.run_task(self._on_search),
         )
@@ -43,7 +43,7 @@ class TemplateListPage:
             options=[
                 ft.dropdown.Option("newest", "最新"),
                 ft.dropdown.Option("votes", "投票數"),
-                ft.dropdown.Option("bumped", "最近Bump"),
+                ft.dropdown.Option("bumped", "最近置頂"),
             ],
             value="newest",
             width=150,
@@ -61,7 +61,7 @@ class TemplateListPage:
             [
                 ft.Container(
                     content=ft.Text(
-                        "Server Templates", size=24, weight=ft.FontWeight.BOLD
+                        "Discord 模板清單", size=24, weight=ft.FontWeight.BOLD
                     ),
                     bgcolor=ft.Colors.SURFACE,
                     padding=15,
@@ -123,7 +123,7 @@ class TemplateListPage:
         if not templates:
             self.template_list.controls.append(
                 ft.Container(
-                    content=ft.Text("沒有找到Template", size=16, color=ft.Colors.GREY),
+                    content=ft.Text("找不到模板 :(", size=16, color=ft.Colors.GREY),
                     alignment=ft.alignment.center,
                     padding=50,
                 )
@@ -241,7 +241,7 @@ class TemplateListPage:
                     ft.Text(f"投票: {template.statistics.votes}"),
                     ft.Text(f"標籤: {', '.join([tag.name for tag in template.tags])}"),
                     ft.Divider(),
-                    ft.Text("介绍:", weight=ft.FontWeight.BOLD),
+                    ft.Text("介紹:", weight=ft.FontWeight.BOLD),
                     ft.Container(
                         content=ft.Text(template.introduce, size=12),
                         padding=10,
